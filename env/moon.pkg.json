@@ -1,0 +1,10 @@
+{
+  "import": [
+    "moonbitlang/async/process",
+    "moonbitlang/core/strconv"
+  ],
+  "test-import": [
+    "tonyfettes/moon-clib/env",
+    "moonbitlang/async"
+  ]
+}
