@@ -53,7 +53,7 @@ That's it. No build instructions here—those come from the package repository.
 Build manifests are stored in a separate repository, organized by library name and version:
 
 ```
-moon-clib-packages/
+moon-clib-pkg/
 ├── c-ares/
 │   ├── 1.24.0/
 │   │   └── manifest.json
@@ -149,7 +149,7 @@ Each source in the `source` array has a `type` field and type-specific fields:
 | `url` | Yes | URL to download |
 | `sha256` | No | SHA256 checksum for integrity verification |
 | `strip_components` | No | Equivalent to `tar --strip-components=N` (default: 0) |
-| `dest` | No | Destination directory relative to `${SOURCE}` |
+| `dest` | No | Destination directory relative to `${SRCDIR}` |
 
 #### Git Source
 
@@ -169,7 +169,7 @@ Each source in the `source` array has a `type` field and type-specific fields:
 | `url` | Yes | Git repository URL |
 | `ref` | Yes | Tag, branch, or commit SHA |
 | `shallow` | No | Use shallow clone (default: true) |
-| `dest` | No | Destination directory relative to `${SOURCE}` |
+| `dest` | No | Destination directory relative to `${SRCDIR}` |
 
 #### File Source
 
@@ -200,7 +200,7 @@ For local files (in the package directory):
 | `url` | No | URL to download (use either `url` or `path`) |
 | `path` | No | Path relative to package directory (use either `url` or `path`) |
 | `sha256` | No | SHA256 checksum for integrity verification (for `url` only) |
-| `dest` | No | Destination path relative to `${SOURCE}` |
+| `dest` | No | Destination path relative to `${SRCDIR}` |
 
 Using `path` allows patches and other files to be stored alongside the manifest in the package repository, reducing external dependencies.
 
@@ -220,7 +220,7 @@ For referencing local directories on the user's machine (development use):
 |-------|----------|-------------|
 | `type` | Yes | Must be `"local"` |
 | `path` | Yes | Local filesystem path (absolute or relative to moon.lib.json) |
-| `dest` | No | Destination directory relative to `${SOURCE}` |
+| `dest` | No | Destination directory relative to `${SRCDIR}` |
 
 #### Default `dest` Values
 
@@ -239,7 +239,7 @@ Each step in the `build` array is an object:
   "run": ["cmd", "arg1", "arg2"],
   "when": { "os": "linux", "arch": "x86_64" },
   "env": { "CC": "clang" },
-  "workdir": "lib"
+  "cwd": "lib"
 }
 ```
 
@@ -248,7 +248,7 @@ Each step in the `build` array is an object:
 | `run` | Yes | Command as array of strings (avoids shell quoting issues) |
 | `when` | No | Condition for running this step |
 | `env` | No | Step-specific environment variables |
-| `workdir` | No | Working directory relative to `${SOURCE}` |
+| `cwd` | No | Working directory relative to `${SRCDIR}` |
 
 #### Condition Matching
 
@@ -277,7 +277,7 @@ Only `${VAR}` syntax is supported. Variables are expanded in `run` array element
 | `${PREFIX}` | Installation prefix (`$MOON_HOME`) |
 | `${DESTDIR}` | Staging directory for installation (temp directory managed by moon-clib) |
 | `${JOBS}` | Parallel job count |
-| `${SOURCE}` | Source directory (`$MOON_HOME/src/{name}-{version}/`) containing all downloaded sources |
+| `${SRCDIR}` | Source directory (in cache: `~/.cache/moon-clib/src/{name}-{version}/`) containing all downloaded sources |
 | `${OS}` | Current OS (`darwin`, `linux`, `windows`) |
 | `${ARCH}` | Current architecture (`x86_64`, `aarch64`, etc.) |
 
@@ -285,7 +285,7 @@ Only `${VAR}` syntax is supported. Variables are expanded in `run` array element
 
 Each build step runs with:
 
-- **cwd** = `${SOURCE}/{workdir}` (or just `${SOURCE}` if `workdir` is omitted)
+- **cwd** = `${SRCDIR}/{cwd}` (or just `${SRCDIR}` if `cwd` is omitted)
 - **env** = inherited environment + step-specific `env` + variables above
 
 ### DESTDIR Installation Pattern
@@ -311,7 +311,7 @@ Build steps should install to `${DESTDIR}${PREFIX}/...` rather than directly to 
 {"run": ["install", "-Dm644", "include/foo.h", "${DESTDIR}${PREFIX}/include/foo.h"]}
 ```
 
-Using `${SOURCE}` provides better readability than relative paths with multiple `..`:
+Using `${SRCDIR}` provides better readability than relative paths with multiple `..`:
 
 ## Package Manifest Examples
 
@@ -344,15 +344,15 @@ These examples show the contents of package manifest files in the repository.
                 "-DCARES_STATIC=OFF",
                 "-DCARES_SHARED=ON",
                 "-DCARES_BUILD_TESTS=OFF"],
-        "workdir": "c-ares"
+        "cwd": "c-ares"
       },
       {
         "run": ["cmake", "--build", "build", "-j${JOBS}"],
-        "workdir": "c-ares"
+        "cwd": "c-ares"
       },
       {
         "run": ["cmake", "--install", "build", "--prefix", "${DESTDIR}${PREFIX}"],
-        "workdir": "c-ares"
+        "cwd": "c-ares"
       }
     ]
 }
@@ -382,30 +382,30 @@ These examples show the contents of package manifest files in the repository.
       {
         "when": { "os": "linux", "arch": "x86_64" },
         "run": ["./Configure", "linux-x86_64", "--prefix=${PREFIX}", "shared", "zlib"],
-        "workdir": "openssl"
+        "cwd": "openssl"
       },
       {
         "when": { "os": "linux", "arch": "aarch64" },
         "run": ["./Configure", "linux-aarch64", "--prefix=${PREFIX}", "shared", "zlib"],
-        "workdir": "openssl"
+        "cwd": "openssl"
       },
       {
         "when": { "os": "darwin", "arch": "x86_64" },
         "run": ["./Configure", "darwin64-x86_64-cc", "--prefix=${PREFIX}", "shared", "zlib"],
-        "workdir": "openssl"
+        "cwd": "openssl"
       },
       {
         "when": { "os": "darwin", "arch": "aarch64" },
         "run": ["./Configure", "darwin64-arm64-cc", "--prefix=${PREFIX}", "shared", "zlib"],
-        "workdir": "openssl"
+        "cwd": "openssl"
       },
       {
         "run": ["make", "-j${JOBS}"],
-        "workdir": "openssl"
+        "cwd": "openssl"
       },
       {
         "run": ["make", "install_sw", "install_ssldirs", "DESTDIR=${DESTDIR}"],
-        "workdir": "openssl"
+        "cwd": "openssl"
       }
     ]
 }
@@ -442,20 +442,20 @@ manifest.json:
 
     "build": [
       {
-        "run": ["patch", "-p1", "-i", "${SOURCE}/patches/fix-build.patch"],
-        "workdir": "lib"
+        "run": ["patch", "-p1", "-i", "${SRCDIR}/patches/fix-build.patch"],
+        "cwd": "lib"
       },
       {
         "run": ["./configure", "--prefix=${PREFIX}"],
-        "workdir": "lib"
+        "cwd": "lib"
       },
       {
         "run": ["make", "-j${JOBS}"],
-        "workdir": "lib"
+        "cwd": "lib"
       },
       {
         "run": ["make", "install", "DESTDIR=${DESTDIR}"],
-        "workdir": "lib"
+        "cwd": "lib"
       }
     ]
 }
@@ -480,15 +480,15 @@ The patch file is stored in the package repository alongside the manifest, so it
     "build": [
       {
         "run": ["make", "-j${JOBS}"],
-        "workdir": "simple"
+        "cwd": "simple"
       },
       {
         "run": ["install", "-Dm755", "libsimple.so", "${DESTDIR}${PREFIX}/lib/libsimple.so"],
-        "workdir": "simple"
+        "cwd": "simple"
       },
       {
         "run": ["install", "-Dm644", "simple.h", "${DESTDIR}${PREFIX}/include/simple.h"],
-        "workdir": "simple"
+        "cwd": "simple"
       }
     ]
 }
@@ -527,9 +527,9 @@ moon-clib cache clean          # Remove all cached packages
      - Extracts package to `${PREFIX}`
      - Updates install manifest with file list
    - If not cached (or checksum invalid):
-     - Creates `${SOURCE}` directory (`$MOON_HOME/src/{name}-{version}/`)
+     - Creates `${SRCDIR}` directory (in cache: `~/.cache/moon-clib/src/{name}-{version}/`)
      - Creates temporary `${DESTDIR}` directory
-     - Downloads all sources to their `dest` paths within `${SOURCE}`
+     - Downloads all sources to their `dest` paths within `${SRCDIR}`
      - Executes build steps with condition matching
      - Scans `${DESTDIR}` to discover installed files
      - Creates tarball from `${DESTDIR}`, saves to cache with `.sha256`
@@ -553,19 +553,30 @@ Built packages are cached outside `$MOON_HOME` so they survive toolchain reinsta
 
 ```
 ~/.cache/moon-clib/
-└── packages/
-    ├── c-ares-1.24.0-linux-x86_64.tar.gz
-    ├── c-ares-1.24.0-linux-x86_64.tar.gz.sha256
-    ├── openssl-3.2.0-linux-x86_64.tar.gz
-    ├── openssl-3.2.0-linux-x86_64.tar.gz.sha256
+├── pkg/                              # Built packages
+│   ├── c-ares-1.24.0-linux-x86_64.tar.gz
+│   ├── c-ares-1.24.0-linux-x86_64.tar.gz.sha256
+│   ├── openssl-3.2.0-linux-x86_64.tar.gz
+│   ├── openssl-3.2.0-linux-x86_64.tar.gz.sha256
+│   └── ...
+└── src/                                   # Source directories (${SRCDIR})
+    ├── c-ares-1.24.0/
+    │   └── c-ares/                        # Extracted tarball
+    ├── openssl-3.2.0/
+    │   └── openssl/
     └── ...
 ```
 
-Each package:
+**pkg/**: Built package tarballs
 
 - **Filename**: `{name}-{version}-{os}-{arch}.tar.gz`
 - **Contents**: Files relative to `${PREFIX}` (same as what would be installed)
 - **Checksum**: `.sha256` file for integrity verification
+
+**src/**: Source directories used during build
+
+- Created when building from source
+- Can be cleaned with `moon-clib cache clean`
 
 ## Manifest
 

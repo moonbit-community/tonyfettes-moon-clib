@@ -1,0 +1,12 @@
+{
+  "name": "tonyfettes/moon-clib",
+  "version": "0.1.0",
+  "deps": {
+    "moonbitlang/async": "0.16.4"
+  },
+  "readme": "README.md",
+  "repository": "",
+  "license": "Apache-2.0",
+  "keywords": [],
+  "description": ""
+}
