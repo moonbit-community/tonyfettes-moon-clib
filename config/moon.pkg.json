@@ -1,0 +1,12 @@
+{
+  "import": [
+    "tonyfettes/moon-clib/types",
+    "tonyfettes/moon-clib/env",
+    "moonbitlang/async/fs",
+    "moonbitlang/core/json"
+  ],
+  "test-import": [
+    "tonyfettes/moon-clib/config",
+    "moonbitlang/async"
+  ]
+}
