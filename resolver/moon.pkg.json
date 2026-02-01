@@ -1,0 +1,10 @@
+{
+  "import": [
+    "tonyfettes/moon-clib/types",
+    "tonyfettes/moon-clib/repository"
+  ],
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/async/fs"
+  ]
+}
