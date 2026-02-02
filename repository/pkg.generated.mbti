@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tonyfettes/moon-clib/repository"
+
+import {
+  "tonyfettes/moon-clib/types",
+}
+
+// Values
+pub async fn fetch_manifest(Repository, String, String) -> @types.PackageManifest
+
+pub async fn fetch_package_file(Repository, String, String, String) -> Bytes
+
+pub async fn find_package(Array[Repository], String, String) -> (Repository, @types.PackageManifest)
+
+// Errors
+pub suberror RepositoryError {
+  PackageNotFound(String, String)
+  FetchError(String)
+  ParseError(String)
+}
+
+// Types and methods
+pub(all) struct Repository {
+  url : String
+  is_local : Bool
+}
+pub async fn Repository::new(String) -> Self
+pub impl Eq for Repository
+pub impl Show for Repository
+
+// Type aliases
+
+// Traits
+

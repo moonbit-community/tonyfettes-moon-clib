@@ -1,0 +1,137 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tonyfettes/moon-clib/types"
+
+import {
+  "moonbitlang/core/json",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) struct BuildStep {
+  run : Array[String]
+  when : Condition?
+  env : Map[String, String]?
+  cwd : String?
+}
+pub impl Eq for BuildStep
+pub impl Show for BuildStep
+pub impl ToJson for BuildStep
+pub impl @json.FromJson for BuildStep
+
+pub(all) struct Condition {
+  os : String?
+  arch : String?
+}
+pub impl Eq for Condition
+pub impl Show for Condition
+pub impl ToJson for Condition
+pub impl @json.FromJson for Condition
+
+pub(all) struct Config {
+  repositories : Array[String]
+}
+pub impl Eq for Config
+pub impl Show for Config
+pub impl ToJson for Config
+pub impl @json.FromJson for Config
+
+pub(all) struct FileSource {
+  url : String?
+  path : String?
+  sha256 : String?
+  dest : String?
+}
+pub impl Eq for FileSource
+pub impl Show for FileSource
+pub impl ToJson for FileSource
+pub impl @json.FromJson for FileSource
+
+pub(all) struct GitSource {
+  url : String
+  ref_ : String
+  shallow : Bool?
+  dest : String?
+}
+pub impl Eq for GitSource
+pub impl Show for GitSource
+pub impl ToJson for GitSource
+pub impl @json.FromJson for GitSource
+
+pub(all) struct InstallManifest {
+  installed : Map[String, InstalledLibrary]
+}
+pub impl Eq for InstallManifest
+pub impl Show for InstallManifest
+pub impl ToJson for InstallManifest
+pub impl @json.FromJson for InstallManifest
+
+pub(all) struct InstalledLibrary {
+  version : String
+  installed_at : String
+  files : Array[String]
+}
+pub impl Eq for InstalledLibrary
+pub impl Show for InstalledLibrary
+pub impl ToJson for InstalledLibrary
+pub impl @json.FromJson for InstalledLibrary
+
+pub(all) struct LocalSource {
+  path : String
+  dest : String?
+}
+pub impl Eq for LocalSource
+pub impl Show for LocalSource
+pub impl ToJson for LocalSource
+pub impl @json.FromJson for LocalSource
+
+pub(all) struct PackageManifest {
+  description : String?
+  author : String?
+  license : String?
+  homepage : String?
+  source : Array[Source]
+  dependencies : Map[String, String]?
+  build : Array[BuildStep]
+}
+pub impl Eq for PackageManifest
+pub impl Show for PackageManifest
+pub impl ToJson for PackageManifest
+pub impl @json.FromJson for PackageManifest
+
+pub(all) struct ProjectDependencies {
+  dependencies : Map[String, String]
+}
+pub impl Eq for ProjectDependencies
+pub impl Show for ProjectDependencies
+pub impl ToJson for ProjectDependencies
+pub impl @json.FromJson for ProjectDependencies
+
+pub(all) enum Source {
+  Tarball(TarballSource)
+  Git(GitSource)
+  File(FileSource)
+  Local(LocalSource)
+}
+pub impl Eq for Source
+pub impl Show for Source
+pub impl ToJson for Source
+pub impl @json.FromJson for Source
+
+pub(all) struct TarballSource {
+  url : String
+  sha256 : String?
+  strip_components : Int?
+  dest : String?
+}
+pub impl Eq for TarballSource
+pub impl Show for TarballSource
+pub impl ToJson for TarballSource
+pub impl @json.FromJson for TarballSource
+
+// Type aliases
+
+// Traits
+

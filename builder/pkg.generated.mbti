@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tonyfettes/moon-clib/builder"
+
+import {
+  "tonyfettes/moon-clib/types",
+}
+
+// Values
+pub async fn execute_build(Array[@types.BuildStep], BuildContext) -> Unit
+
+pub fn expand_variables(String, BuildContext) -> String
+
+pub fn matches_condition(@types.Condition?, String, String) -> Bool
+
+// Errors
+pub suberror BuildError {
+  BuildError(String)
+}
+
+// Types and methods
+pub(all) struct BuildContext {
+  prefix : String
+  destdir : String
+  srcdir : String
+  jobs : Int
+  os : String
+  arch : String
+}
+pub impl Eq for BuildContext
+pub impl Show for BuildContext
+
+// Type aliases
+
+// Traits
+

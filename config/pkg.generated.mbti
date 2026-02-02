@@ -1,0 +1,27 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tonyfettes/moon-clib/config"
+
+import {
+  "tonyfettes/moon-clib/types",
+}
+
+// Values
+pub async fn load_config() -> @types.Config
+
+pub async fn load_project_deps() -> @types.ProjectDependencies
+
+pub async fn load_project_deps_from(String) -> @types.ProjectDependencies
+
+pub async fn save_config(@types.Config) -> Unit
+
+// Errors
+pub suberror ConfigError {
+  ConfigError(String)
+}
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

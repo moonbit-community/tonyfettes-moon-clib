@@ -1,0 +1,37 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tonyfettes/moon-clib/source"
+
+import {
+  "tonyfettes/moon-clib/repository",
+  "tonyfettes/moon-clib/types",
+}
+
+// Values
+pub fn derive_dest_from_path(String) -> String
+
+pub fn derive_dest_from_url(String) -> String
+
+pub async fn fetch_file(@types.FileSource, String, @repository.Repository, String, String) -> Unit
+
+pub async fn fetch_git(@types.GitSource, String) -> Unit
+
+pub async fn fetch_local(@types.LocalSource, String) -> Unit
+
+pub async fn fetch_sources(Array[@types.Source], String, @repository.Repository, String, String) -> Unit
+
+pub async fn fetch_tarball(@types.TarballSource, String) -> Unit
+
+pub fn strip_extensions(String) -> String
+
+// Errors
+pub suberror SourceError {
+  FetchError(String)
+  InvalidSource(String)
+}
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

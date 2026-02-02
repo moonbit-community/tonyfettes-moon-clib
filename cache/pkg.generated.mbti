@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tonyfettes/moon-clib/cache"
+
+// Values
+pub async fn clean_cache() -> Unit
+
+pub async fn extract_from_cache(String, String, String) -> Array[String]
+
+pub async fn get_pkg_cache_dir() -> String
+
+pub async fn get_pkg_cache_path(String, String) -> String
+
+pub async fn get_src_cache_dir() -> String
+
+pub async fn is_cached(String, String) -> Bool
+
+pub async fn list_cached() -> Array[(String, String)]
+
+pub async fn save_to_cache(String, String, String) -> Unit
+
+// Errors
+pub suberror CacheError {
+  CacheError(String)
+}
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

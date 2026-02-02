@@ -1,0 +1,29 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tonyfettes/moon-clib/env"
+
+// Values
+pub async fn get_arch() -> String
+
+pub async fn get_cache_dir() -> String
+
+pub async fn get_config_dir() -> String
+
+pub async fn get_home_dir() -> String
+
+pub async fn get_jobs() -> Int
+
+pub async fn get_moon_home() -> String
+
+pub async fn get_os() -> String
+
+// Errors
+pub suberror EnvError {
+  EnvError(String)
+}
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

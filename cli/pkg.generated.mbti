@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tonyfettes/moon-clib/cli"
+
+// Values
+pub fn parse_args(Array[String]) -> Command raise ParseError
+
+// Errors
+pub suberror ParseError {
+  UnknownCommand(String)
+  MissingArgument(String)
+  UnknownFlag(String)
+}
+
+// Types and methods
+pub(all) enum Command {
+  Install(force~ : Bool)
+  List
+  Info(name~ : String)
+  Remove(name~ : String)
+  RepoList
+  RepoAdd(url~ : String)
+  RepoRemove(url~ : String)
+  RepoUpdate
+  CacheList
+  CacheClean
+  Help
+  Version
+}
+pub impl Eq for Command
+pub impl Show for Command
+
+// Type aliases
+
+// Traits
+
