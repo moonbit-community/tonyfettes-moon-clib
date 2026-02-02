@@ -1,20 +1,20 @@
 // Test helpers
+///|
 fn[T : @json.FromJson + ToJson + Eq] roundtrip(value : T) -> Bool {
   let json = value.to_json()
-  let parsed : T = try {
-    @json.from_json(json)
-  } catch {
-    _ => return false
-  }
+  let parsed : T = @json.from_json(json) catch { _ => return false }
   parsed == value
 }
 
 // Condition tests
+
+///|
 test "Condition: empty" {
   let cond : @types.Condition = { os: None, arch: None }
   assert_true(roundtrip(cond))
 }
 
+///|
 test "Condition: os only" {
   let cond : @types.Condition = { os: Some("linux"), arch: None }
   assert_true(roundtrip(cond))
@@ -23,17 +23,21 @@ test "Condition: os only" {
   assert_eq(obj.get("os"), Some(Json::string("linux")))
 }
 
+///|
 test "Condition: arch only" {
   let cond : @types.Condition = { os: None, arch: Some("x86_64") }
   assert_true(roundtrip(cond))
 }
 
+///|
 test "Condition: both fields" {
   let cond : @types.Condition = { os: Some("darwin"), arch: Some("aarch64") }
   assert_true(roundtrip(cond))
 }
 
 // BuildStep tests
+
+///|
 test "BuildStep: minimal" {
   let step : @types.BuildStep = {
     run: ["make"],
@@ -44,6 +48,7 @@ test "BuildStep: minimal" {
   assert_true(roundtrip(step))
 }
 
+///|
 test "BuildStep: with condition" {
   let step : @types.BuildStep = {
     run: ["./configure", "--prefix=$PREFIX"],
@@ -54,15 +59,23 @@ test "BuildStep: with condition" {
   assert_true(roundtrip(step))
 }
 
+///|
 test "BuildStep: with env" {
   let env : Map[String, String] = {}
   env["CC"] = "clang"
   env["CFLAGS"] = "-O2"
-  let step : @types.BuildStep = { run: ["make", "-j4"], when: None, env: Some(env), cwd: None }
+  let step : @types.BuildStep = {
+    run: ["make", "-j4"],
+    when: None,
+    env: Some(env),
+    cwd: None,
+  }
   assert_true(roundtrip(step))
 }
 
 // TarballSource tests
+
+///|
 test "TarballSource: full" {
   let src : @types.TarballSource = {
     url: "https://example.org/lib-1.0.tar.gz",
@@ -73,6 +86,7 @@ test "TarballSource: full" {
   assert_true(roundtrip(src))
 }
 
+///|
 test "TarballSource: minimal" {
   let src : @types.TarballSource = {
     url: "https://example.org/lib.tar.gz",
@@ -84,6 +98,8 @@ test "TarballSource: minimal" {
 }
 
 // GitSource tests
+
+///|
 test "GitSource: full" {
   let src : @types.GitSource = {
     url: "https://github.com/org/repo.git",
@@ -94,6 +110,7 @@ test "GitSource: full" {
   assert_true(roundtrip(src))
 }
 
+///|
 test "GitSource: minimal" {
   let src : @types.GitSource = {
     url: "https://github.com/org/repo.git",
@@ -104,6 +121,7 @@ test "GitSource: minimal" {
   assert_true(roundtrip(src))
 }
 
+///|
 test "GitSource: JSON uses 'ref' field" {
   let src : @types.GitSource = {
     url: "https://github.com/org/repo.git",
@@ -119,6 +137,8 @@ test "GitSource: JSON uses 'ref' field" {
 }
 
 // FileSource tests
+
+///|
 test "FileSource: with url" {
   let src : @types.FileSource = {
     url: Some("https://example.org/patch.diff"),
@@ -129,6 +149,7 @@ test "FileSource: with url" {
   assert_true(roundtrip(src))
 }
 
+///|
 test "FileSource: with path" {
   let src : @types.FileSource = {
     url: None,
@@ -140,17 +161,22 @@ test "FileSource: with path" {
 }
 
 // LocalSource tests
+
+///|
 test "LocalSource: full" {
   let src : @types.LocalSource = { path: "./vendor/lib", dest: Some("vendor") }
   assert_true(roundtrip(src))
 }
 
+///|
 test "LocalSource: minimal" {
   let src : @types.LocalSource = { path: "/home/user/lib", dest: None }
   assert_true(roundtrip(src))
 }
 
 // Source enum tests
+
+///|
 test "Source: Tarball serializes with type field" {
   let src : @types.Source = @types.Source::Tarball({
     url: "https://example.org/lib.tar.gz",
@@ -161,9 +187,13 @@ test "Source: Tarball serializes with type field" {
   let json = src.to_json()
   guard json is Object(obj) else { panic() }
   assert_eq(obj.get("type"), Some(Json::string("tarball")))
-  assert_eq(obj.get("url"), Some(Json::string("https://example.org/lib.tar.gz")))
+  assert_eq(
+    obj.get("url"),
+    Some(Json::string("https://example.org/lib.tar.gz")),
+  )
 }
 
+///|
 test "Source: Git serializes with type field" {
   let src : @types.Source = @types.Source::Git({
     url: "https://github.com/org/repo.git",
@@ -177,6 +207,7 @@ test "Source: Git serializes with type field" {
   assert_eq(obj.get("ref"), Some(Json::string("v1.0")))
 }
 
+///|
 test "Source: File serializes with type field" {
   let src : @types.Source = @types.Source::File({
     url: Some("https://example.org/fix.patch"),
@@ -189,13 +220,18 @@ test "Source: File serializes with type field" {
   assert_eq(obj.get("type"), Some(Json::string("file")))
 }
 
+///|
 test "Source: Local serializes with type field" {
-  let src : @types.Source = @types.Source::Local({ path: "./vendor", dest: None })
+  let src : @types.Source = @types.Source::Local({
+    path: "./vendor",
+    dest: None,
+  })
   let json = src.to_json()
   guard json is Object(obj) else { panic() }
   assert_eq(obj.get("type"), Some(Json::string("local")))
 }
 
+///|
 test "Source: Tarball roundtrip" {
   let src : @types.Source = @types.Source::Tarball({
     url: "https://example.org/lib-1.0.tar.gz",
@@ -206,6 +242,7 @@ test "Source: Tarball roundtrip" {
   assert_true(roundtrip(src))
 }
 
+///|
 test "Source: Git roundtrip" {
   let src : @types.Source = @types.Source::Git({
     url: "https://github.com/org/repo.git",
@@ -216,6 +253,7 @@ test "Source: Git roundtrip" {
   assert_true(roundtrip(src))
 }
 
+///|
 test "Source: File roundtrip with url" {
   let src : @types.Source = @types.Source::File({
     url: Some("https://example.org/patch.diff"),
@@ -226,6 +264,7 @@ test "Source: File roundtrip with url" {
   assert_true(roundtrip(src))
 }
 
+///|
 test "Source: File roundtrip with path" {
   let src : @types.Source = @types.Source::File({
     url: None,
@@ -236,24 +275,25 @@ test "Source: File roundtrip with path" {
   assert_true(roundtrip(src))
 }
 
+///|
 test "Source: Local roundtrip" {
-  let src : @types.Source = @types.Source::Local({ path: "./vendor/lib", dest: Some("vendor") })
+  let src : @types.Source = @types.Source::Local({
+    path: "./vendor/lib",
+    dest: Some("vendor"),
+  })
   assert_true(roundtrip(src))
 }
 
+///|
 test "Source: File validation - error on neither url nor path" {
-  let json : Json = {
-    "type": "file",
-    "dest": "patches/fix.patch",
-  }
-  let result : Result[@types.Source, _] = try {
-    Ok(@json.from_json(json))
-  } catch {
+  let json : Json = { "type": "file", "dest": "patches/fix.patch" }
+  let result : Result[@types.Source, _] = Ok(@json.from_json(json)) catch {
     e => Err(e)
   }
   assert_true(result is Err(_))
 }
 
+///|
 test "Source: File validation - error on both url and path" {
   let json : Json = {
     "type": "file",
@@ -261,25 +301,24 @@ test "Source: File validation - error on both url and path" {
     "path": "local-fix.patch",
     "dest": "patches/fix.patch",
   }
-  let result : Result[@types.Source, _] = try {
-    Ok(@json.from_json(json))
-  } catch {
+  let result : Result[@types.Source, _] = Ok(@json.from_json(json)) catch {
     e => Err(e)
   }
   assert_true(result is Err(_))
 }
 
+///|
 test "Source: unknown type error" {
   let json : Json = { "type": "unknown", "foo": "bar" }
-  let result : Result[@types.Source, _] = try {
-    Ok(@json.from_json(json))
-  } catch {
+  let result : Result[@types.Source, _] = Ok(@json.from_json(json)) catch {
     e => Err(e)
   }
   assert_true(result is Err(_))
 }
 
 // PackageManifest tests
+
+///|
 test "PackageManifest: full example from DESIGN.md" {
   let deps : Map[String, String] = {}
   deps["zlib"] = "1.3.1"
@@ -291,7 +330,9 @@ test "PackageManifest: full example from DESIGN.md" {
     source: [
       @types.Source::Tarball({
         url: "https://c-ares.org/download/c-ares-1.24.0.tar.gz",
-        sha256: Some("0a72be66959955c43e2af2fbd03418e82a2bd5464604e3e0a6c0dc7d1f1fdc5f"),
+        sha256: Some(
+          "0a72be66959955c43e2af2fbd03418e82a2bd5464604e3e0a6c0dc7d1f1fdc5f",
+        ),
         strip_components: Some(1),
         dest: Some("c-ares"),
       }),
@@ -300,11 +341,7 @@ test "PackageManifest: full example from DESIGN.md" {
     build: [
       {
         run: [
-          "cmake",
-          "-B",
-          "build",
-          "-DCMAKE_INSTALL_PREFIX=$PREFIX",
-          "-DCMAKE_BUILD_TYPE=Release",
+          "cmake", "-B", "build", "-DCMAKE_INSTALL_PREFIX=$PREFIX", "-DCMAKE_BUILD_TYPE=Release",
         ],
         when: None,
         env: None,
@@ -321,6 +358,7 @@ test "PackageManifest: full example from DESIGN.md" {
   assert_true(roundtrip(manifest))
 }
 
+///|
 test "PackageManifest: minimal" {
   let manifest : @types.PackageManifest = {
     description: None,
@@ -335,6 +373,8 @@ test "PackageManifest: minimal" {
 }
 
 // ProjectDependencies tests
+
+///|
 test "ProjectDependencies: roundtrip" {
   let deps : Map[String, String] = {}
   deps["c-ares"] = "1.24.0"
@@ -345,22 +385,26 @@ test "ProjectDependencies: roundtrip" {
 }
 
 // Config tests
+
+///|
 test "Config: roundtrip" {
   let config : @types.Config = {
     repositories: [
-      "https://github.com/anthropics/moon-clib-packages",
-      "/home/user/my-custom-packages",
+      "https://github.com/anthropics/moon-clib-packages", "/home/user/my-custom-packages",
     ],
   }
   assert_true(roundtrip(config))
 }
 
+///|
 test "Config: empty" {
   let config : @types.Config = { repositories: [] }
   assert_true(roundtrip(config))
 }
 
 // InstalledLibrary tests
+
+///|
 test "InstalledLibrary: roundtrip" {
   let lib : @types.InstalledLibrary = {
     version: "1.24.0",
@@ -371,6 +415,8 @@ test "InstalledLibrary: roundtrip" {
 }
 
 // InstallManifest tests
+
+///|
 test "InstallManifest: roundtrip" {
   let libs : Map[String, @types.InstalledLibrary] = {}
   libs["c-ares"] = {
@@ -387,62 +433,43 @@ test "InstallManifest: roundtrip" {
   assert_true(roundtrip(manifest))
 }
 
+///|
 test "InstallManifest: empty" {
   let manifest : @types.InstallManifest = { installed: {} }
   assert_true(roundtrip(manifest))
 }
 
 // JSON parsing tests
+
+///|
 test "Source: parse from JSON string - tarball" {
   let json_str =
     #|{"type": "tarball", "url": "https://example.org/lib.tar.gz", "sha256": "abc123"}
-  let json : Json = try {
-    @json.parse(json_str)
-  } catch {
-    _ => panic()
-  }
-  let src : @types.Source = try {
-    @json.from_json(json)
-  } catch {
-    _ => panic()
-  }
+  let json : Json = @json.parse(json_str) catch { _ => panic() }
+  let src : @types.Source = @json.from_json(json) catch { _ => panic() }
   guard src is @types.Source::Tarball(t) else { panic() }
   assert_eq(t.url, "https://example.org/lib.tar.gz")
   assert_eq(t.sha256, Some("abc123"))
 }
 
+///|
 test "Source: parse from JSON string - git" {
   let json_str =
     #|{"type": "git", "url": "https://github.com/org/repo.git", "ref": "v1.0", "shallow": true}
-  let json : Json = try {
-    @json.parse(json_str)
-  } catch {
-    _ => panic()
-  }
-  let src : @types.Source = try {
-    @json.from_json(json)
-  } catch {
-    _ => panic()
-  }
+  let json : Json = @json.parse(json_str) catch { _ => panic() }
+  let src : @types.Source = @json.from_json(json) catch { _ => panic() }
   guard src is @types.Source::Git(g) else { panic() }
   assert_eq(g.url, "https://github.com/org/repo.git")
   assert_eq(g.ref_, "v1.0")
   assert_eq(g.shallow, Some(true))
 }
 
+///|
 test "BuildStep: parse with condition" {
   let json_str =
     #|{"run": ["./configure"], "when": {"os": "linux"}, "cwd": "src"}
-  let json : Json = try {
-    @json.parse(json_str)
-  } catch {
-    _ => panic()
-  }
-  let step : @types.BuildStep = try {
-    @json.from_json(json)
-  } catch {
-    _ => panic()
-  }
+  let json : Json = @json.parse(json_str) catch { _ => panic() }
+  let step : @types.BuildStep = @json.from_json(json) catch { _ => panic() }
   assert_eq(step.run, ["./configure"])
   guard step.when is Some(cond) else { panic() }
   assert_eq(cond.os, Some("linux"))

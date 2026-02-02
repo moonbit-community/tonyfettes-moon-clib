@@ -1,9 +1,11 @@
 ///| Tests for dependency resolver
 
-///| Counter for unique test directory names
+///|
+/// Counter for unique test directory names
 let test_counter : Ref[Int] = Ref::new(0)
 
-///| Helper to create a simple manifest with optional dependencies
+///|
+/// Helper to create a simple manifest with optional dependencies
 fn make_manifest(deps : Map[String, String]?) -> @types.PackageManifest {
   {
     description: None,
@@ -17,12 +19,15 @@ fn make_manifest(deps : Map[String, String]?) -> @types.PackageManifest {
 }
 
 ///| Helper to create a mock repository backed by a Map
-///| This creates a local repository pointing to a temp directory structure
+
+///|
+/// This creates a local repository pointing to a temp directory structure
 struct MockRegistry {
   base_path : String
 }
 
-///| Parse "name@version" key into (name, version)
+///|
+/// Parse "name@version" key into (name, version)
 fn parse_key(key : String) -> (String, String)? {
   // Find the @ separator
   let mut at_pos = -1
@@ -48,29 +53,24 @@ fn parse_key(key : String) -> (String, String)? {
   Some((name_buf.to_string(), version_buf.to_string()))
 }
 
-///| Create a mock registry with the given packages
+///|
+/// Create a mock registry with the given packages
 async fn MockRegistry::new(
-  packages : Map[String, @types.PackageManifest]
-) -> MockRegistry raise {
+  packages : Map[String, @types.PackageManifest],
+) -> MockRegistry {
   // Create a temporary directory structure for packages
   let id = test_counter.val
   test_counter.val = id + 1
   let base_path = "/tmp/moon-clib-test-" + id.to_string()
 
   // Clean up if directory already exists from a previous test run
-  try {
-    @fs.rmdir(base_path, recursive=true)
-  } catch {
+  @fs.rmdir(base_path, recursive=true) catch {
     _ => () // Ignore errors - directory may not exist
   }
-
   @fs.mkdir(base_path, permission=0o755, recursive=true)
-
   for key, manifest in packages {
     // Parse key as name@version
-    guard parse_key(key) is Some((name, version)) else {
-      continue
-    }
+    guard parse_key(key) is Some((name, version)) else { continue }
 
     // Create directory structure
     let pkg_dir = base_path + "/" + name + "/" + version
@@ -80,21 +80,25 @@ async fn MockRegistry::new(
     let manifest_json = manifest.to_json().stringify()
     @fs.write_file(pkg_dir + "/manifest.json", manifest_json, create=0o644)
   }
-
   { base_path, }
 }
 
-///| Get a repository for this mock registry
-async fn MockRegistry::repository(self : MockRegistry) -> @repository.Repository {
+///|
+/// Get a repository for this mock registry
+async fn MockRegistry::repository(
+  self : MockRegistry,
+) -> @repository.Repository {
   @repository.Repository::new(self.base_path)
 }
 
-///| Cleanup the mock registry
-async fn MockRegistry::cleanup(self : MockRegistry) -> Unit raise {
+///|
+/// Cleanup the mock registry
+async fn MockRegistry::cleanup(self : MockRegistry) -> Unit {
   @fs.rmdir(self.base_path, recursive=true)
 }
 
-///| Get index of package in result by name
+///|
+/// Get index of package in result by name
 fn find_index(result : Array[@resolver.ResolvedPackage], name : String) -> Int {
   for i = 0; i < result.length(); i = i + 1 {
     if result[i].name == name {
@@ -105,25 +109,25 @@ fn find_index(result : Array[@resolver.ResolvedPackage], name : String) -> Int {
 }
 
 // Test: Single package with no dependencies
+
+///|
 async test "resolve: single package no deps" {
   let packages : Map[String, @types.PackageManifest] = {}
   packages["zlib@1.0.0"] = make_manifest(None)
-
   let registry = MockRegistry::new(packages)
   let repo = registry.repository()
-
   let deps : Map[String, String] = {}
   deps["zlib"] = "1.0.0"
-
   let result = @resolver.resolve_dependencies(deps, [repo])
   assert_eq(result.length(), 1)
   assert_eq(result[0].name, "zlib")
   assert_eq(result[0].version, "1.0.0")
-
   registry.cleanup()
 }
 
 // Test: Linear dependency chain (A -> B -> C)
+
+///|
 async test "resolve: linear chain A -> B -> C" {
   let packages : Map[String, @types.PackageManifest] = {}
 
@@ -139,13 +143,10 @@ async test "resolve: linear chain A -> B -> C" {
   let a_deps : Map[String, String] = {}
   a_deps["B"] = "1.0.0"
   packages["A@1.0.0"] = make_manifest(Some(a_deps))
-
   let registry = MockRegistry::new(packages)
   let repo = registry.repository()
-
   let deps : Map[String, String] = {}
   deps["A"] = "1.0.0"
-
   let result = @resolver.resolve_dependencies(deps, [repo])
 
   // Should have 3 packages
@@ -155,17 +156,17 @@ async test "resolve: linear chain A -> B -> C" {
   let c_i = find_index(result, "C")
   let b_i = find_index(result, "B")
   let a_i = find_index(result, "A")
-
   assert_true(c_i >= 0)
   assert_true(b_i >= 0)
   assert_true(a_i >= 0)
   assert_true(c_i < b_i)
   assert_true(b_i < a_i)
-
   registry.cleanup()
 }
 
 // Test: Diamond dependency (A -> B, A -> C, B -> D, C -> D)
+
+///|
 async test "resolve: diamond dependency" {
   let packages : Map[String, @types.PackageManifest] = {}
 
@@ -187,13 +188,10 @@ async test "resolve: diamond dependency" {
   a_deps["B"] = "1.0.0"
   a_deps["C"] = "1.0.0"
   packages["A@1.0.0"] = make_manifest(Some(a_deps))
-
   let registry = MockRegistry::new(packages)
   let repo = registry.repository()
-
   let deps : Map[String, String] = {}
   deps["A"] = "1.0.0"
-
   let result = @resolver.resolve_dependencies(deps, [repo])
 
   // Should have 4 packages, D only once
@@ -204,7 +202,6 @@ async test "resolve: diamond dependency" {
   let b_i = find_index(result, "B")
   let c_i = find_index(result, "C")
   let a_i = find_index(result, "A")
-
   assert_true(d_i >= 0)
   assert_true(b_i >= 0)
   assert_true(c_i >= 0)
@@ -214,11 +211,12 @@ async test "resolve: diamond dependency" {
   // B and C must come before A
   assert_true(b_i < a_i)
   assert_true(c_i < a_i)
-
   registry.cleanup()
 }
 
 // Test: Circular dependency detection (A -> B -> A)
+
+///|
 async test "resolve: circular dependency error" {
   let packages : Map[String, @types.PackageManifest] = {}
 
@@ -231,70 +229,62 @@ async test "resolve: circular dependency error" {
   let a_deps : Map[String, String] = {}
   a_deps["B"] = "1.0.0"
   packages["A@1.0.0"] = make_manifest(Some(a_deps))
-
   let registry = MockRegistry::new(packages)
   let repo = registry.repository()
-
   let deps : Map[String, String] = {}
   deps["A"] = "1.0.0"
-
-  let result : Result[Array[@resolver.ResolvedPackage], Error] = try {
-    Ok(@resolver.resolve_dependencies(deps, [repo]))
-  } catch {
+  let result : Result[Array[@resolver.ResolvedPackage], Error] = Ok(
+    @resolver.resolve_dependencies(deps, [repo]),
+  ) catch {
     e => Err(e)
   }
 
   // Should fail with circular dependency error
   assert_true(result is Err(_))
-
   registry.cleanup()
 }
 
 // Test: Package not found
+
+///|
 async test "resolve: package not found error" {
   let packages : Map[String, @types.PackageManifest] = {}
   // Empty registry
 
   let registry = MockRegistry::new(packages)
   let repo = registry.repository()
-
   let deps : Map[String, String] = {}
   deps["nonexistent"] = "1.0.0"
-
-  let result : Result[Array[@resolver.ResolvedPackage], Error] = try {
-    Ok(@resolver.resolve_dependencies(deps, [repo]))
-  } catch {
+  let result : Result[Array[@resolver.ResolvedPackage], Error] = Ok(
+    @resolver.resolve_dependencies(deps, [repo]),
+  ) catch {
     e => Err(e)
   }
 
   // Should fail with not found error
   assert_true(result is Err(_))
-
   registry.cleanup()
 }
 
 // Test: Multiple top-level dependencies
+
+///|
 async test "resolve: multiple top-level deps" {
   let packages : Map[String, @types.PackageManifest] = {}
   packages["zlib@1.0.0"] = make_manifest(None)
   packages["openssl@1.0.0"] = make_manifest(None)
-
   let registry = MockRegistry::new(packages)
   let repo = registry.repository()
-
   let deps : Map[String, String] = {}
   deps["zlib"] = "1.0.0"
   deps["openssl"] = "1.0.0"
-
   let result = @resolver.resolve_dependencies(deps, [repo])
 
   // Should have both packages
   assert_eq(result.length(), 2)
-
   let has_zlib = find_index(result, "zlib") >= 0
   let has_openssl = find_index(result, "openssl") >= 0
   assert_true(has_zlib)
   assert_true(has_openssl)
-
   registry.cleanup()
 }

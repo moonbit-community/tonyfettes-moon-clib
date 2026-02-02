@@ -1,12 +1,15 @@
 ///| Environment detection and path utilities for moon-clib
 
-///| Error type for environment operations
+///|
+/// Error type for environment operations
 pub suberror EnvError {
   EnvError(String)
 }
 
 ///| Get the current operating system.
-///| Returns "darwin", "linux", or "windows".
+
+///|
+/// Returns "darwin", "linux", or "windows".
 pub async fn get_os() -> String {
   let (exit_code, output) = @process.collect_stdout("uname", ["-s"])
   if exit_code != 0 {
@@ -22,7 +25,9 @@ pub async fn get_os() -> String {
 }
 
 ///| Get the current CPU architecture.
-///| Returns "x86_64", "aarch64", etc.
+
+///|
+/// Returns "x86_64", "aarch64", etc.
 pub async fn get_arch() -> String {
   let (exit_code, output) = @process.collect_stdout("uname", ["-m"])
   if exit_code != 0 {
@@ -33,7 +38,8 @@ pub async fn get_arch() -> String {
   normalize_arch(arch_name)
 }
 
-///| Normalize architecture names to consistent values.
+///|
+/// Normalize architecture names to consistent values.
 fn normalize_arch(arch : String) -> String {
   match arch {
     "arm64" => "aarch64"
@@ -43,7 +49,8 @@ fn normalize_arch(arch : String) -> String {
   }
 }
 
-///| Get the number of CPU cores available for parallel jobs.
+///|
+/// Get the number of CPU cores available for parallel jobs.
 pub async fn get_jobs() -> Int {
   let os = get_os()
   let (exit_code, output) = if os == "darwin" {
@@ -59,13 +66,18 @@ pub async fn get_jobs() -> Int {
   let jobs_str = output.text().trim(char_set="\n\r ").to_string()
   try {
     let n = @strconv.parse_int(jobs_str)
-    if n > 0 { n } else { 1 }
+    if n > 0 {
+      n
+    } else {
+      1
+    }
   } catch {
     _ => 1
   }
 }
 
-///| Get environment variable value using printenv.
+///|
+/// Get environment variable value using printenv.
 async fn get_env_var(name : String) -> String? {
   let (exit_code, output) = @process.collect_stdout("printenv", [name])
   if exit_code != 0 {
@@ -80,8 +92,10 @@ async fn get_env_var(name : String) -> String? {
 }
 
 ///| Get the MOON_HOME directory.
-///| Returns $MOON_HOME if set, otherwise defaults to ~/.moon
-pub async fn get_moon_home() -> String raise {
+
+///|
+/// Returns $MOON_HOME if set, otherwise defaults to ~/.moon
+pub async fn get_moon_home() -> String {
   match get_env_var("MOON_HOME") {
     Some(home) => home
     None => {
@@ -92,9 +106,12 @@ pub async fn get_moon_home() -> String raise {
 }
 
 ///| Get the cache directory for moon-clib.
+
 ///| On macOS: ~/Library/Caches/moon-clib
-///| On Linux: $XDG_CACHE_HOME/moon-clib or ~/.cache/moon-clib
-pub async fn get_cache_dir() -> String raise {
+
+///|
+/// On Linux: $XDG_CACHE_HOME/moon-clib or ~/.cache/moon-clib
+pub async fn get_cache_dir() -> String {
   // First check for override environment variable
   match get_env_var("MOON_CLIB_CACHE") {
     Some(cache) => return cache
@@ -114,8 +131,10 @@ pub async fn get_cache_dir() -> String raise {
 }
 
 ///| Get the config directory for moon-clib.
-///| Defaults to ~/.config/moon-clib
-pub async fn get_config_dir() -> String raise {
+
+///|
+/// Defaults to ~/.config/moon-clib
+pub async fn get_config_dir() -> String {
   let home_dir = get_home_dir()
   // Check for XDG_CONFIG_HOME on Linux
   let os = get_os()
@@ -128,8 +147,9 @@ pub async fn get_config_dir() -> String raise {
   home_dir + "/.config/moon-clib"
 }
 
-///| Get the user's home directory.
-pub async fn get_home_dir() -> String raise {
+///|
+/// Get the user's home directory.
+pub async fn get_home_dir() -> String {
   // Try HOME first (works on Unix-like systems)
   match get_env_var("HOME") {
     Some(home) => return home

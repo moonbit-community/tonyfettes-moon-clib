@@ -1,58 +1,66 @@
 ///| Package caching for moon-clib
+
 ///| Manages built package tarballs and source directories
 
-///| Error type for cache operations
+///|
+/// Error type for cache operations
 pub suberror CacheError {
   CacheError(String)
 }
 
 ///| Get the package cache directory (for built tarballs).
-///| Returns: {cache_dir}/pkg/
-pub async fn get_pkg_cache_dir() -> String raise {
+
+///|
+/// Returns: {cache_dir}/pkg/
+pub async fn get_pkg_cache_dir() -> String {
   let cache_dir = @env.get_cache_dir()
   cache_dir + "/pkg"
 }
 
 ///| Get the source cache directory (for extracted sources).
-///| Returns: {cache_dir}/src/
-pub async fn get_src_cache_dir() -> String raise {
+
+///|
+/// Returns: {cache_dir}/src/
+pub async fn get_src_cache_dir() -> String {
   let cache_dir = @env.get_cache_dir()
   cache_dir + "/src"
 }
 
 ///| Get the cache path for a specific package.
-///| Returns: {cache_dir}/pkg/{name}-{version}-{os}-{arch}.tar.gz
-pub async fn get_pkg_cache_path(name : String, version : String) -> String raise {
+
+///|
+/// Returns: {cache_dir}/pkg/{name}-{version}-{os}-{arch}.tar.gz
+pub async fn get_pkg_cache_path(name : String, version : String) -> String {
   let pkg_dir = get_pkg_cache_dir()
   let os = @env.get_os()
   let arch = @env.get_arch()
   pkg_dir + "/" + name + "-" + version + "-" + os + "-" + arch + ".tar.gz"
 }
 
-///| Check if a package is already cached.
+///|
+/// Check if a package is already cached.
 pub async fn is_cached(name : String, version : String) -> Bool {
-  let cache_path = try {
-    get_pkg_cache_path(name, version)
-  } catch {
-    _ => return false
-  }
+  let cache_path = get_pkg_cache_path(name, version) catch { _ => return false }
   file_exists(cache_path)
 }
 
-///| Check if a file exists using test -f command.
+///|
+/// Check if a file exists using test -f command.
 async fn file_exists(path : String) -> Bool {
   let (exit_code, _) = @process.collect_stdout("test", ["-f", path])
   exit_code == 0
 }
 
-///| Check if a directory exists using test -d command.
+///|
+/// Check if a directory exists using test -d command.
 async fn dir_exists(path : String) -> Bool {
   let (exit_code, _) = @process.collect_stdout("test", ["-d", path])
   exit_code == 0
 }
 
-///| Ensure a directory exists, creating it if necessary.
-async fn ensure_dir(path : String) -> Unit raise {
+///|
+/// Ensure a directory exists, creating it if necessary.
+async fn ensure_dir(path : String) -> Unit {
   if not(dir_exists(path)) {
     let (exit_code, output) = @process.collect_stdout("mkdir", ["-p", path])
     if exit_code != 0 {
@@ -63,21 +71,22 @@ async fn ensure_dir(path : String) -> Unit raise {
 }
 
 ///| Save build output to cache as a tarball.
-///| Creates {cache_dir}/pkg/{name}-{version}-{os}-{arch}.tar.gz from destdir contents.
+
+///|
+/// Creates {cache_dir}/pkg/{name}-{version}-{os}-{arch}.tar.gz from destdir contents.
 pub async fn save_to_cache(
   name : String,
   version : String,
-  destdir : String
-) -> Unit raise {
+  destdir : String,
+) -> Unit {
   let cache_path = get_pkg_cache_path(name, version)
   let pkg_dir = get_pkg_cache_dir()
   // Ensure the package cache directory exists
   ensure_dir(pkg_dir)
   // Create tarball from destdir contents
-  let (exit_code, output) = @process.collect_stdout(
-    "tar",
-    ["-czf", cache_path, "-C", destdir, "."],
-  )
+  let (exit_code, output) = @process.collect_stdout("tar", [
+    "-czf", cache_path, "-C", destdir, ".",
+  ])
   if exit_code != 0 {
     let msg = output.text()
     raise CacheError("Failed to create tarball \{cache_path}: \{msg}")
@@ -85,12 +94,14 @@ pub async fn save_to_cache(
 }
 
 ///| Extract a cached package to a prefix directory.
-///| Returns the list of extracted files (relative paths).
+
+///|
+/// Returns the list of extracted files (relative paths).
 pub async fn extract_from_cache(
   name : String,
   version : String,
-  prefix : String
-) -> Array[String] raise {
+  prefix : String,
+) -> Array[String] {
   let cache_path = get_pkg_cache_path(name, version)
   // Check if the cache file exists
   if not(file_exists(cache_path)) {
@@ -99,10 +110,9 @@ pub async fn extract_from_cache(
   // Ensure the prefix directory exists
   ensure_dir(prefix)
   // Extract tarball to prefix, capturing file list with verbose output
-  let (exit_code, output) = @process.collect_stdout(
-    "tar",
-    ["-xzvf", cache_path, "-C", prefix],
-  )
+  let (exit_code, output) = @process.collect_stdout("tar", [
+    "-xzvf", cache_path, "-C", prefix,
+  ])
   if exit_code != 0 {
     let msg = output.text()
     raise CacheError("Failed to extract tarball \{cache_path}: \{msg}")
@@ -125,19 +135,17 @@ pub async fn extract_from_cache(
 }
 
 ///| List all cached packages.
-///| Returns array of (name, version) tuples parsed from cache filenames.
-pub async fn list_cached() -> Array[(String, String)] raise {
+
+///|
+/// Returns array of (name, version) tuples parsed from cache filenames.
+pub async fn list_cached() -> Array[(String, String)] {
   let pkg_dir = get_pkg_cache_dir()
   // Check if directory exists
   if not(dir_exists(pkg_dir)) {
     return []
   }
   // List all .tar.gz files in the package cache directory
-  let entries = try {
-    @fs.readdir(pkg_dir)
-  } catch {
-    _ => return []
-  }
+  let entries = @fs.readdir(pkg_dir) catch { _ => return [] }
   let os = @env.get_os()
   let arch = @env.get_arch()
   let suffix = "-" + os + "-" + arch + ".tar.gz"
@@ -146,7 +154,7 @@ pub async fn list_cached() -> Array[(String, String)] raise {
   for filename in entries {
     if filename.has_suffix(suffix) {
       // Parse {name}-{version}-{os}-{arch}.tar.gz
-      let base = filename[:(filename.length() - suffix.length())].to_string()
+      let base = filename[:filename.length() - suffix.length()].to_string()
       // Find the last dash to separate name and version
       // Format: name-version (name may contain dashes, version typically doesn't)
       match parse_name_version(base) {
@@ -159,7 +167,9 @@ pub async fn list_cached() -> Array[(String, String)] raise {
 }
 
 ///| Parse a "{name}-{version}" string into (name, version).
-///| Name can contain dashes, version is the part after the last dash.
+
+///|
+/// Name can contain dashes, version is the part after the last dash.
 fn parse_name_version(s : String) -> (String, String)? {
   // Find the last dash
   let last_dash = find_last_dash(s)
@@ -185,7 +195,8 @@ fn parse_name_version(s : String) -> (String, String)? {
   Some((name, version))
 }
 
-///| Find the index of the last dash in a string.
+///|
+/// Find the index of the last dash in a string.
 fn find_last_dash(s : String) -> Int {
   let mut last = -1
   for i = 0; i < s.length(); i = i + 1 {
@@ -196,25 +207,22 @@ fn find_last_dash(s : String) -> Int {
   last
 }
 
-///| Clean the cache by removing all cached packages and sources.
-pub async fn clean_cache() -> Unit raise {
+///|
+/// Clean the cache by removing all cached packages and sources.
+pub async fn clean_cache() -> Unit {
   let cache_dir = @env.get_cache_dir()
   let pkg_dir = cache_dir + "/pkg"
   let src_dir = cache_dir + "/src"
   // Remove pkg directory contents if it exists
   if dir_exists(pkg_dir) {
-    let (exit_code, _) = @process.collect_stdout(
-      "sh",
-      ["-c", "rm -rf " + pkg_dir + "/*"],
-    )
+    let (exit_code, _) = @process.collect_stdout("sh", [
+      "-c",
+      "rm -rf " + pkg_dir + "/*",
+    ])
     // Note: rm -rf with glob may fail if no files match, which is OK
     if exit_code != 0 {
       // Only raise if directory exists and has content
-      let entries = try {
-        @fs.readdir(pkg_dir)
-      } catch {
-        _ => []
-      }
+      let entries = @fs.readdir(pkg_dir) catch { _ => [] }
       if entries.length() > 0 {
         raise CacheError("Failed to clean pkg cache")
       }
@@ -222,17 +230,13 @@ pub async fn clean_cache() -> Unit raise {
   }
   // Remove src directory contents if it exists
   if dir_exists(src_dir) {
-    let (exit_code, _) = @process.collect_stdout(
-      "sh",
-      ["-c", "rm -rf " + src_dir + "/*"],
-    )
+    let (exit_code, _) = @process.collect_stdout("sh", [
+      "-c",
+      "rm -rf " + src_dir + "/*",
+    ])
     if exit_code != 0 {
       // Only raise if directory exists and has content
-      let entries = try {
-        @fs.readdir(src_dir)
-      } catch {
-        _ => []
-      }
+      let entries = @fs.readdir(src_dir) catch { _ => [] }
       if entries.length() > 0 {
         raise CacheError("Failed to clean src cache")
       }
@@ -242,7 +246,8 @@ pub async fn clean_cache() -> Unit raise {
 
 // Internal tests for helper functions
 
-///| Test parse_name_version with simple name
+///|
+/// Test parse_name_version with simple name
 test "parse_name_version simple" {
   let result = parse_name_version("zlib-1.3.1")
   match result {
@@ -254,7 +259,8 @@ test "parse_name_version simple" {
   }
 }
 
-///| Test parse_name_version with hyphenated name
+///|
+/// Test parse_name_version with hyphenated name
 test "parse_name_version hyphenated name" {
   let result = parse_name_version("c-ares-1.24.0")
   match result {
@@ -266,7 +272,8 @@ test "parse_name_version hyphenated name" {
   }
 }
 
-///| Test parse_name_version with multiple hyphens in name
+///|
+/// Test parse_name_version with multiple hyphens in name
 test "parse_name_version multiple hyphens" {
   let result = parse_name_version("my-cool-lib-2.0.0")
   match result {
@@ -278,31 +285,36 @@ test "parse_name_version multiple hyphens" {
   }
 }
 
-///| Test parse_name_version with no dash returns None
+///|
+/// Test parse_name_version with no dash returns None
 test "parse_name_version no dash" {
   let result = parse_name_version("nodash")
   assert_true(result is None)
 }
 
-///| Test parse_name_version with empty string returns None
+///|
+/// Test parse_name_version with empty string returns None
 test "parse_name_version empty" {
   let result = parse_name_version("")
   assert_true(result is None)
 }
 
-///| Test parse_name_version with trailing dash returns None
+///|
+/// Test parse_name_version with trailing dash returns None
 test "parse_name_version trailing dash" {
   let result = parse_name_version("name-")
   assert_true(result is None)
 }
 
-///| Test parse_name_version with leading dash returns None
+///|
+/// Test parse_name_version with leading dash returns None
 test "parse_name_version leading dash" {
   let result = parse_name_version("-version")
   assert_true(result is None)
 }
 
-///| Test find_last_dash helper function
+///|
+/// Test find_last_dash helper function
 test "find_last_dash basic" {
   assert_eq(find_last_dash("a-b-c"), 3)
   assert_eq(find_last_dash("abc"), -1)

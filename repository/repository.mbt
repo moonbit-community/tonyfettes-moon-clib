@@ -1,6 +1,7 @@
 ///| Package repository operations for moon-clib
 
-///| Error type for repository operations
+///|
+/// Error type for repository operations
 pub suberror RepositoryError {
   PackageNotFound(String, String)
   FetchError(String)
@@ -28,8 +29,8 @@ pub async fn Repository::new(url : String) -> Repository {
 pub async fn fetch_manifest(
   repo : Repository,
   name : String,
-  version : String
-) -> @types.PackageManifest raise {
+  version : String,
+) -> @types.PackageManifest {
   let manifest_path = "\{name}/\{version}/manifest.json"
   let content = if repo.is_local {
     fetch_local_file(repo.url, manifest_path)
@@ -48,8 +49,8 @@ pub async fn fetch_package_file(
   repo : Repository,
   name : String,
   version : String,
-  path : String
-) -> Bytes raise {
+  path : String,
+) -> Bytes {
   let file_path = "\{name}/\{version}/\{path}"
   if repo.is_local {
     fetch_local_file(repo.url, file_path)
@@ -64,8 +65,8 @@ pub async fn fetch_package_file(
 pub async fn find_package(
   repos : Array[Repository],
   name : String,
-  version : String
-) -> (Repository, @types.PackageManifest) raise {
+  version : String,
+) -> (Repository, @types.PackageManifest) {
   for repo in repos {
     try {
       let manifest = fetch_manifest(repo, name, version)
@@ -79,7 +80,7 @@ pub async fn find_package(
 
 ///|
 /// Fetch a file from a local repository.
-async fn fetch_local_file(repo_path : String, file_path : String) -> Bytes raise {
+async fn fetch_local_file(repo_path : String, file_path : String) -> Bytes {
   let full_path = "\{repo_path}/\{file_path}"
   try {
     let data = @fs.read_file(full_path)
@@ -91,7 +92,7 @@ async fn fetch_local_file(repo_path : String, file_path : String) -> Bytes raise
 
 ///|
 /// Fetch a file from a remote repository via HTTP.
-async fn fetch_remote_file(repo_url : String, file_path : String) -> Bytes raise {
+async fn fetch_remote_file(repo_url : String, file_path : String) -> Bytes {
   // Ensure URL doesn't have trailing slash
   let base_url = if repo_url.has_suffix("/") {
     repo_url[:repo_url.length() - 1].to_string()
@@ -114,9 +115,7 @@ async fn fetch_remote_file(repo_url : String, file_path : String) -> Bytes raise
 ///|
 /// Parse a manifest.json file content into a PackageManifest.
 fn parse_manifest(content : Bytes) -> @types.PackageManifest raise {
-  let text = try {
-    @utf8.decode(content)
-  } catch {
+  let text = @utf8.decode(content) catch {
     _ => raise ParseError("Invalid UTF-8 in manifest")
   }
   try {

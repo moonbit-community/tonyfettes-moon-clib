@@ -1,4 +1,5 @@
-///| CLI commands for moon-clib
+///|
+/// CLI commands for moon-clib
 pub(all) enum Command {
   Install(force~ : Bool)
   List
@@ -14,14 +15,16 @@ pub(all) enum Command {
   Version
 } derive(Show, Eq)
 
-///| Errors that can occur during argument parsing
+///|
+/// Errors that can occur during argument parsing
 pub suberror ParseError {
   UnknownCommand(String)
   MissingArgument(String)
   UnknownFlag(String)
 }
 
-///| Parse command-line arguments into a Command
+///|
+/// Parse command-line arguments into a Command
 pub fn parse_args(args : Array[String]) -> Command raise ParseError {
   // Separate flags from positional arguments
   let flags : Array[String] = []
@@ -79,7 +82,8 @@ pub fn parse_args(args : Array[String]) -> Command raise ParseError {
   }
 }
 
-///| Check for --force flag and validate no unknown flags
+///|
+/// Check for --force flag and validate no unknown flags
 fn check_force_flag(flags : Array[String]) -> Bool raise ParseError {
   let mut force = false
   for flag in flags {
@@ -91,17 +95,23 @@ fn check_force_flag(flags : Array[String]) -> Bool raise ParseError {
   force
 }
 
-///| Validate that no extra flags are present
+///|
+/// Validate that no extra flags are present
 fn check_no_extra_flags(flags : Array[String]) -> Unit raise ParseError {
   for flag in flags {
     raise UnknownFlag(flag)
   }
 }
 
-///| Parse repo subcommands
-fn parse_repo_subcommand(positional : Array[String]) -> Command raise ParseError {
+///|
+/// Parse repo subcommands
+fn parse_repo_subcommand(
+  positional : Array[String],
+) -> Command raise ParseError {
   if positional.length() < 2 {
-    raise MissingArgument("repo requires a subcommand (list, add, remove, update)")
+    raise MissingArgument(
+      "repo requires a subcommand (list, add, remove, update)",
+    )
   }
   let sub = positional[1]
   match sub {
@@ -123,12 +133,13 @@ fn parse_repo_subcommand(positional : Array[String]) -> Command raise ParseError
   }
 }
 
-///| Parse cache subcommands
-fn parse_cache_subcommand(positional : Array[String]) -> Command raise ParseError {
+///|
+/// Parse cache subcommands
+fn parse_cache_subcommand(
+  positional : Array[String],
+) -> Command raise ParseError {
   if positional.length() < 2 {
-    raise MissingArgument(
-      "cache requires a subcommand (list, clean)",
-    )
+    raise MissingArgument("cache requires a subcommand (list, clean)")
   }
   let sub = positional[1]
   match sub {

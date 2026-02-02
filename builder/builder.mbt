@@ -1,20 +1,24 @@
-///| Build context containing all variables for expansion
+///|
+/// Build context containing all variables for expansion
 pub(all) struct BuildContext {
-  prefix : String      // $MOON_HOME
-  destdir : String     // Temp staging directory
-  srcdir : String      // Source directory
-  jobs : Int           // Parallel job count
-  os : String          // Current OS
-  arch : String        // Current architecture
+  prefix : String // $MOON_HOME
+  destdir : String // Temp staging directory
+  srcdir : String // Source directory
+  jobs : Int // Parallel job count
+  os : String // Current OS
+  arch : String // Current architecture
 } derive(Show, Eq)
 
-///| Error type for builder operations
+///|
+/// Error type for builder operations
 pub suberror BuildError {
   BuildError(String)
 }
 
 ///| Expand variables in a string using the build context.
-///| Replaces ${VAR} patterns with their corresponding values.
+
+///|
+/// Replaces ${VAR} patterns with their corresponding values.
 pub fn expand_variables(s : String, ctx : BuildContext) -> String {
   let result = StringBuilder::new()
   let chars = s.to_array()
@@ -61,11 +65,20 @@ pub fn expand_variables(s : String, ctx : BuildContext) -> String {
 }
 
 ///| Check if a condition matches the current OS and architecture.
+
 ///| - If condition is None, step always runs
+
 ///| - If os is Some, must match current os
+
 ///| - If arch is Some, must match current arch
-///| - If both specified, both must match
-pub fn matches_condition(cond : @types.Condition?, os : String, arch : String) -> Bool {
+
+///|
+/// - If both specified, both must match
+pub fn matches_condition(
+  cond : @types.Condition?,
+  os : String,
+  arch : String,
+) -> Bool {
   match cond {
     None => true
     Some(c) => {
@@ -83,11 +96,19 @@ pub fn matches_condition(cond : @types.Condition?, os : String, arch : String) -
 }
 
 ///| Execute a sequence of build steps.
+
 ///| - Expands variables in all run array elements
+
 ///| - Respects condition matching for each step
+
 ///| - cwd is relative to srcdir
-///| - Raises on non-zero exit code
-pub async fn execute_build(steps : Array[@types.BuildStep], ctx : BuildContext) -> Unit raise {
+
+///|
+/// - Raises on non-zero exit code
+pub async fn execute_build(
+  steps : Array[@types.BuildStep],
+  ctx : BuildContext,
+) -> Unit {
   for step in steps {
     // Check if condition matches
     if not(matches_condition(step.when, ctx.os, ctx.arch)) {
@@ -104,7 +125,6 @@ pub async fn execute_build(steps : Array[@types.BuildStep], ctx : BuildContext) 
     if expanded_cmd.is_empty() {
       raise BuildError("Build step has empty run array")
     }
-
     let cmd = expanded_cmd[0]
     let args : Array[String] = []
     for i = 1; i < expanded_cmd.length(); i = i + 1 {
@@ -130,15 +150,16 @@ pub async fn execute_build(steps : Array[@types.BuildStep], ctx : BuildContext) 
       cwd?=cwd.map(fn(s) { s.view() }),
       extra_env~,
     )
-
     if exit_code != 0 {
-      let cmd_str = expanded_cmd.iter().fold(init="", fn(acc, s) {
-        if acc.is_empty() {
-          s
-        } else {
-          acc + " " + s
-        }
-      })
+      let cmd_str = expanded_cmd
+        .iter()
+        .fold(init="", fn(acc, s) {
+          if acc.is_empty() {
+            s
+          } else {
+            acc + " " + s
+          }
+        })
       raise BuildError("Command failed with exit code \{exit_code}: \{cmd_str}")
     }
   }

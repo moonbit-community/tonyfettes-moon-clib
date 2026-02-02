@@ -1,14 +1,18 @@
 ///| Source fetching module for moon-clib
+
 ///| Handles fetching sources from tarball, git, file, and local paths
 
-///| Error type for source fetching operations
+///|
+/// Error type for source fetching operations
 pub suberror SourceError {
   FetchError(String)
   InvalidSource(String)
 }
 
 ///| Derive the default destination directory name from a URL.
-///| Extracts the last path component and removes common archive extensions.
+
+///|
+/// Extracts the last path component and removes common archive extensions.
 pub fn derive_dest_from_url(url : String) -> String {
   // Find the last '/' to get the filename
   let mut last_slash = -1
@@ -37,7 +41,8 @@ pub fn derive_dest_from_url(url : String) -> String {
   strip_extensions(filename)
 }
 
-///| Derive the default destination directory name from a local path.
+///|
+/// Derive the default destination directory name from a local path.
 pub fn derive_dest_from_path(path : String) -> String {
   // Find the last '/' to get the directory/file name
   let mut last_slash = -1
@@ -64,21 +69,12 @@ pub fn derive_dest_from_path(path : String) -> String {
   }
 }
 
-///| Strip common archive/compression extensions from a filename.
+///|
+/// Strip common archive/compression extensions from a filename.
 pub fn strip_extensions(filename : String) -> String {
   let extensions = [
-    ".tar.gz",
-    ".tar.xz",
-    ".tar.bz2",
-    ".tgz",
-    ".txz",
-    ".tbz2",
-    ".zip",
-    ".tar",
-    ".gz",
-    ".xz",
-    ".bz2",
-    ".git",
+    ".tar.gz", ".tar.xz", ".tar.bz2", ".tgz", ".txz", ".tbz2", ".zip", ".tar", ".gz",
+    ".xz", ".bz2", ".git",
   ]
   let mut result = filename
   for ext in extensions {
@@ -97,14 +93,16 @@ pub fn strip_extensions(filename : String) -> String {
 }
 
 ///| Fetch all sources in the given array.
-///| Dispatches to the appropriate fetch function based on source type.
+
+///|
+/// Dispatches to the appropriate fetch function based on source type.
 pub async fn fetch_sources(
   sources : Array[@types.Source],
   srcdir : String,
   repo : @repository.Repository,
   name : String,
-  version : String
-) -> Unit raise {
+  version : String,
+) -> Unit {
   for source in sources {
     match source {
       @types.Source::Tarball(src) => {
@@ -146,13 +144,13 @@ pub async fn fetch_sources(
 }
 
 ///| Fetch a tarball source: download and extract archive.
-///| Uses: curl -fsSL {url} | tar -xz --strip-components={n} -C {dest}
-pub async fn fetch_tarball(src : @types.TarballSource, dest : String) -> Unit raise {
+
+///|
+/// Uses: curl -fsSL {url} | tar -xz --strip-components={n} -C {dest}
+pub async fn fetch_tarball(src : @types.TarballSource, dest : String) -> Unit {
   // Ensure destination directory exists
   if not(@fs.exists(dest)) {
-    try {
-      @fs.mkdir(dest, permission=0o755, recursive=true)
-    } catch {
+    @fs.mkdir(dest, permission=0o755, recursive=true) catch {
       _ => () // Directory may already exist
     }
   }
@@ -166,14 +164,19 @@ pub async fn fetch_tarball(src : @types.TarballSource, dest : String) -> Unit ra
   let args : FixedArray[String] = ["-c", shell_cmd]
   let exit_code = @process.run(cmd, args[:])
   if exit_code != 0 {
-    raise FetchError("Failed to fetch tarball from \{src.url}: exit code \{exit_code}")
+    raise FetchError(
+      "Failed to fetch tarball from \{src.url}: exit code \{exit_code}",
+    )
   }
 }
 
 ///| Fetch a git source: clone repository.
+
 ///| If shallow is true (or None, default), uses: git clone --depth 1 --branch {ref} {url} {dest}
-///| If shallow is false, uses: git clone --branch {ref} {url} {dest}
-pub async fn fetch_git(src : @types.GitSource, dest : String) -> Unit raise {
+
+///|
+/// If shallow is false, uses: git clone --branch {ref} {url} {dest}
+pub async fn fetch_git(src : @types.GitSource, dest : String) -> Unit {
   let shallow = match src.shallow {
     Some(s) => s
     None => true
@@ -192,20 +195,25 @@ pub async fn fetch_git(src : @types.GitSource, dest : String) -> Unit raise {
   })
   let exit_code = @process.run("git", fixed_args[:])
   if exit_code != 0 {
-    raise FetchError("Failed to clone git repository \{src.url}: exit code \{exit_code}")
+    raise FetchError(
+      "Failed to clone git repository \{src.url}: exit code \{exit_code}",
+    )
   }
 }
 
 ///| Fetch a file source: download single file or copy from package dir.
+
 ///| With url: curl -fsSL -o {dest} {url}
-///| With path: use @repository.fetch_package_file() to get bytes, write to dest
+
+///|
+/// With path: use @repository.fetch_package_file() to get bytes, write to dest
 pub async fn fetch_file(
   src : @types.FileSource,
   dest : String,
   repo : @repository.Repository,
   name : String,
-  version : String
-) -> Unit raise {
+  version : String,
+) -> Unit {
   // Ensure parent directory exists
   ensure_parent_dir(dest)
   match (src.url, src.path) {
@@ -215,19 +223,17 @@ pub async fn fetch_file(
       let args : FixedArray[String] = ["-fsSL", "-o", dest, url]
       let exit_code = @process.run(cmd, args[:])
       if exit_code != 0 {
-        raise FetchError("Failed to fetch file from \{url}: exit code \{exit_code}")
+        raise FetchError(
+          "Failed to fetch file from \{url}: exit code \{exit_code}",
+        )
       }
     }
     (_, Some(path)) => {
       // Fetch from package repository
-      let bytes = try {
-        @repository.fetch_package_file(repo, name, version, path)
-      } catch {
+      let bytes = @repository.fetch_package_file(repo, name, version, path) catch {
         err => raise FetchError("Failed to fetch package file \{path}: \{err}")
       }
-      try {
-        @fs.write_file(dest, bytes, create=0o644)
-      } catch {
+      @fs.write_file(dest, bytes, create=0o644) catch {
         err => raise FetchError("Failed to write file \{dest}: \{err}")
       }
     }
@@ -237,19 +243,24 @@ pub async fn fetch_file(
 }
 
 ///| Fetch a local source: copy directory recursively.
-///| Uses: cp -r {path} {dest}
-pub async fn fetch_local(src : @types.LocalSource, dest : String) -> Unit raise {
+
+///|
+/// Uses: cp -r {path} {dest}
+pub async fn fetch_local(src : @types.LocalSource, dest : String) -> Unit {
   // Ensure parent directory exists
   ensure_parent_dir(dest)
   let cmd = "cp"
   let args : FixedArray[String] = ["-r", src.path, dest]
   let exit_code = @process.run(cmd, args[:])
   if exit_code != 0 {
-    raise FetchError("Failed to copy local source from \{src.path}: exit code \{exit_code}")
+    raise FetchError(
+      "Failed to copy local source from \{src.path}: exit code \{exit_code}",
+    )
   }
 }
 
-///| Ensure the parent directory of a path exists.
+///|
+/// Ensure the parent directory of a path exists.
 async fn ensure_parent_dir(path : String) -> Unit {
   // Find the last '/' to get the parent directory
   let mut last_slash = -1
@@ -266,9 +277,7 @@ async fn ensure_parent_dir(path : String) -> Unit {
     }
     let parent = builder.to_string()
     if not(@fs.exists(parent)) {
-      try {
-        @fs.mkdir(parent, permission=0o755, recursive=true)
-      } catch {
+      @fs.mkdir(parent, permission=0o755, recursive=true) catch {
         _ => () // Directory may already exist
       }
     }

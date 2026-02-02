@@ -1,9 +1,11 @@
-///| Build step conditions based on OS and architecture
+///|
+/// Build step conditions based on OS and architecture
 pub(all) struct Condition {
   os : String?
   arch : String?
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for Condition with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   match self.os {
@@ -17,6 +19,7 @@ pub impl ToJson for Condition with to_json(self) -> Json {
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for Condition with from_json(json, path) -> Condition raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for Condition"))
@@ -32,7 +35,8 @@ pub impl @json.FromJson for Condition with from_json(json, path) -> Condition ra
   { os, arch }
 }
 
-///| A build step with command, optional condition, environment, and working directory
+///|
+/// A build step with command, optional condition, environment, and working directory
 pub(all) struct BuildStep {
   run : Array[String]
   when : Condition?
@@ -40,6 +44,7 @@ pub(all) struct BuildStep {
   cwd : String?
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for BuildStep with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   obj["run"] = self.run.to_json()
@@ -58,6 +63,7 @@ pub impl ToJson for BuildStep with to_json(self) -> Json {
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for BuildStep with from_json(json, path) -> BuildStep raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for BuildStep"))
@@ -81,7 +87,8 @@ pub impl @json.FromJson for BuildStep with from_json(json, path) -> BuildStep ra
   { run, when, env, cwd }
 }
 
-///| Tarball source - download and extract archive
+///|
+/// Tarball source - download and extract archive
 pub(all) struct TarballSource {
   url : String
   sha256 : String?
@@ -89,6 +96,7 @@ pub(all) struct TarballSource {
   dest : String?
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for TarballSource with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   obj["url"] = self.url.to_json()
@@ -107,6 +115,7 @@ pub impl ToJson for TarballSource with to_json(self) -> Json {
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for TarballSource with from_json(json, path) -> TarballSource raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for TarballSource"))
@@ -130,7 +139,8 @@ pub impl @json.FromJson for TarballSource with from_json(json, path) -> TarballS
   { url, sha256, strip_components, dest }
 }
 
-///| Git source - clone repository
+///|
+/// Git source - clone repository
 pub(all) struct GitSource {
   url : String
   ref_ : String
@@ -138,6 +148,7 @@ pub(all) struct GitSource {
   dest : String?
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for GitSource with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   obj["url"] = self.url.to_json()
@@ -153,6 +164,7 @@ pub impl ToJson for GitSource with to_json(self) -> Json {
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for GitSource with from_json(json, path) -> GitSource raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for GitSource"))
@@ -176,7 +188,8 @@ pub impl @json.FromJson for GitSource with from_json(json, path) -> GitSource ra
   { url, ref_, shallow, dest }
 }
 
-///| File source - download single file or copy from package dir
+///|
+/// File source - download single file or copy from package dir
 pub(all) struct FileSource {
   url : String?
   path : String?
@@ -184,6 +197,7 @@ pub(all) struct FileSource {
   dest : String?
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for FileSource with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   match self.url {
@@ -205,6 +219,7 @@ pub impl ToJson for FileSource with to_json(self) -> Json {
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for FileSource with from_json(json, path) -> FileSource raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for FileSource"))
@@ -228,12 +243,14 @@ pub impl @json.FromJson for FileSource with from_json(json, path) -> FileSource 
   { url, path: file_path, sha256, dest }
 }
 
-///| Local source - reference local directory
+///|
+/// Local source - reference local directory
 pub(all) struct LocalSource {
   path : String
   dest : String?
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for LocalSource with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   obj["path"] = self.path.to_json()
@@ -244,6 +261,7 @@ pub impl ToJson for LocalSource with to_json(self) -> Json {
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for LocalSource with from_json(json, path) -> LocalSource raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for LocalSource"))
@@ -259,7 +277,8 @@ pub impl @json.FromJson for LocalSource with from_json(json, path) -> LocalSourc
   { path: local_path, dest }
 }
 
-///| Source specification - discriminated by "type" field in JSON
+///|
+/// Source specification - discriminated by "type" field in JSON
 pub(all) enum Source {
   Tarball(TarballSource)
   Git(GitSource)
@@ -267,6 +286,7 @@ pub(all) enum Source {
   Local(LocalSource)
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for Source with to_json(self) -> Json {
   match self {
     Tarball(src) => {
@@ -300,13 +320,15 @@ pub impl ToJson for Source with to_json(self) -> Json {
   }
 }
 
+///|
 pub impl @json.FromJson for Source with from_json(json, path) -> Source raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for Source"))
   }
   let type_field = match obj.get("type") {
     Some(String(t)) => t
-    Some(_) => raise @json.JsonDecodeError((path, "type field must be a string"))
+    Some(_) =>
+      raise @json.JsonDecodeError((path, "type field must be a string"))
     None => raise @json.JsonDecodeError((path, "missing type field in Source"))
   }
   match type_field {
@@ -329,13 +351,12 @@ pub impl @json.FromJson for Source with from_json(json, path) -> Source raise @j
     }
     "local" => Local(@json.FromJson::from_json(json, path))
     _ =>
-      raise @json.JsonDecodeError(
-        (path, "unknown source type: \{type_field}"),
-      )
+      raise @json.JsonDecodeError((path, "unknown source type: \{type_field}"))
   }
 }
 
-///| Package manifest.json in the repository
+///|
+/// Package manifest.json in the repository
 pub(all) struct PackageManifest {
   description : String?
   author : String?
@@ -346,6 +367,7 @@ pub(all) struct PackageManifest {
   build : Array[BuildStep]
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for PackageManifest with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   match self.description {
@@ -373,6 +395,7 @@ pub impl ToJson for PackageManifest with to_json(self) -> Json {
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for PackageManifest with from_json(json, path) -> PackageManifest raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for PackageManifest"))
@@ -408,20 +431,25 @@ pub impl @json.FromJson for PackageManifest with from_json(json, path) -> Packag
   { description, author, license, homepage, source, dependencies, build }
 }
 
-///| Project dependencies from moon.lib.json
+///|
+/// Project dependencies from moon.lib.json
 pub(all) struct ProjectDependencies {
   dependencies : Map[String, String]
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for ProjectDependencies with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   obj["dependencies"] = self.dependencies.to_json()
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for ProjectDependencies with from_json(json, path) -> ProjectDependencies raise @json.JsonDecodeError {
   guard json is Object(obj) else {
-    raise @json.JsonDecodeError((path, "expected object for ProjectDependencies"))
+    raise @json.JsonDecodeError(
+      (path, "expected object for ProjectDependencies"),
+    )
   }
   let dependencies : Map[String, String] = match obj.get("dependencies") {
     Some(v) => @json.FromJson::from_json(v, path)
@@ -430,17 +458,20 @@ pub impl @json.FromJson for ProjectDependencies with from_json(json, path) -> Pr
   { dependencies, }
 }
 
-///| Repository configuration
+///|
+/// Repository configuration
 pub(all) struct Config {
   repositories : Array[String]
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for Config with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   obj["repositories"] = self.repositories.to_json()
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for Config with from_json(json, path) -> Config raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for Config"))
@@ -452,13 +483,15 @@ pub impl @json.FromJson for Config with from_json(json, path) -> Config raise @j
   { repositories, }
 }
 
-///| Information about an installed library
+///|
+/// Information about an installed library
 pub(all) struct InstalledLibrary {
   version : String
   installed_at : String
   files : Array[String]
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for InstalledLibrary with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   obj["version"] = self.version.to_json()
@@ -467,6 +500,7 @@ pub impl ToJson for InstalledLibrary with to_json(self) -> Json {
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for InstalledLibrary with from_json(json, path) -> InstalledLibrary raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for InstalledLibrary"))
@@ -486,17 +520,20 @@ pub impl @json.FromJson for InstalledLibrary with from_json(json, path) -> Insta
   { version, installed_at, files }
 }
 
-///| Install manifest tracking installed libraries
+///|
+/// Install manifest tracking installed libraries
 pub(all) struct InstallManifest {
   installed : Map[String, InstalledLibrary]
 } derive(Show, Eq)
 
+///|
 pub impl ToJson for InstallManifest with to_json(self) -> Json {
   let obj : Map[String, Json] = {}
   obj["installed"] = self.installed.to_json()
   Json::object(obj)
 }
 
+///|
 pub impl @json.FromJson for InstallManifest with from_json(json, path) -> InstallManifest raise @json.JsonDecodeError {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for InstallManifest"))

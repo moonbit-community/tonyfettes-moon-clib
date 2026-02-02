@@ -1,10 +1,12 @@
 ///| Main entry point for moon-clib CLI application
 
-///| Application version
+///|
+/// Application version
 let version : String = "0.1.0"
 
-///| Run the install command
-async fn run_install(force : Bool) -> Unit raise {
+///|
+/// Run the install command
+async fn run_install(force : Bool) -> Unit {
   let project = @config.load_project_deps()
   let config = @config.load_config()
   let repos : Array[@repository.Repository] = []
@@ -25,8 +27,9 @@ async fn run_install(force : Bool) -> Unit raise {
   println("Done!")
 }
 
-///| Run the list command
-async fn run_list() -> Unit raise {
+///|
+/// Run the list command
+async fn run_list() -> Unit {
   let manifest = @installer.load_install_manifest()
   if manifest.installed.is_empty() {
     println("No libraries installed.")
@@ -37,8 +40,9 @@ async fn run_list() -> Unit raise {
   }
 }
 
-///| Run the info command
-async fn run_info(name : String) -> Unit raise {
+///|
+/// Run the info command
+async fn run_info(name : String) -> Unit {
   let manifest = @installer.load_install_manifest()
   match manifest.installed.get(name) {
     None => println("Library '\{name}' is not installed.")
@@ -54,15 +58,17 @@ async fn run_info(name : String) -> Unit raise {
   }
 }
 
-///| Run the remove command
-async fn run_remove(name : String) -> Unit raise {
+///|
+/// Run the remove command
+async fn run_remove(name : String) -> Unit {
   println("Removing \{name}...")
   @installer.remove_package(name)
   println("Done!")
 }
 
-///| Run the repo list command
-async fn run_repo_list() -> Unit raise {
+///|
+/// Run the repo list command
+async fn run_repo_list() -> Unit {
   let config = @config.load_config()
   if config.repositories.is_empty() {
     println("No repositories configured.")
@@ -74,8 +80,9 @@ async fn run_repo_list() -> Unit raise {
   }
 }
 
-///| Run the repo add command
-async fn run_repo_add(url : String) -> Unit raise {
+///|
+/// Run the repo add command
+async fn run_repo_add(url : String) -> Unit {
   let config = @config.load_config()
   // Check if already exists
   for existing in config.repositories {
@@ -89,8 +96,9 @@ async fn run_repo_add(url : String) -> Unit raise {
   println("Added repository: \{url}")
 }
 
-///| Run the repo remove command
-async fn run_repo_remove(url : String) -> Unit raise {
+///|
+/// Run the repo remove command
+async fn run_repo_remove(url : String) -> Unit {
   let config = @config.load_config()
   let new_repos : Array[String] = []
   let mut found = false
@@ -110,14 +118,16 @@ async fn run_repo_remove(url : String) -> Unit raise {
   println("Removed repository: \{url}")
 }
 
-///| Run the repo update command (placeholder)
+///|
+/// Run the repo update command (placeholder)
 fn run_repo_update() -> Unit {
   println("Repository update is not yet implemented.")
   println("This will sync repository indexes in the future.")
 }
 
-///| Run the cache list command
-async fn run_cache_list() -> Unit raise {
+///|
+/// Run the cache list command
+async fn run_cache_list() -> Unit {
   let cached = @cache.list_cached()
   if cached.is_empty() {
     println("No packages cached.")
@@ -130,14 +140,16 @@ async fn run_cache_list() -> Unit raise {
   }
 }
 
-///| Run the cache clean command
-async fn run_cache_clean() -> Unit raise {
+///|
+/// Run the cache clean command
+async fn run_cache_clean() -> Unit {
   println("Cleaning cache...")
   @cache.clean_cache()
   println("Cache cleaned.")
 }
 
-///| Print help message
+///|
+/// Print help message
 fn print_help() -> Unit {
   println("moon-clib - C library manager for MoonBit")
   println("")
@@ -164,12 +176,14 @@ fn print_help() -> Unit {
   println("    --version, -v       Show version")
 }
 
-///| Print version
+///|
+/// Print version
 fn print_version() -> Unit {
   println("moon-clib \{version}")
 }
 
-///| Main entry point
+///|
+/// Main entry point
 async fn main {
   try {
     let args = @env.args()
