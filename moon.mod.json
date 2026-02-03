@@ -8,6 +8,6 @@
   "repository": "https://github.com/tonyfettes/moon-clib",
   "license": "Apache-2.0",
   "keywords": [],
-  "description": "",
+  "description": "A MoonBit CLI tool for downloading, building, caching, and installing C libraries into MOON_HOME.",
   "preferred-target": "native"
 }
