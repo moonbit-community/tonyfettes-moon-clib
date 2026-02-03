@@ -177,7 +177,7 @@ test "parse_args: repo unknown returns UnknownCommand" {
   guard result is Err(@cli.ParseError::UnknownCommand(cmd)) else {
     fail("Expected UnknownCommand error")
   }
-  assert_eq(parsed.command, "repo unknown")
+  assert_eq(cmd, "repo unknown")
 }
 
 // Test Cache subcommands
@@ -217,7 +217,7 @@ test "parse_args: cache unknown returns UnknownCommand" {
   guard result is Err(@cli.ParseError::UnknownCommand(cmd)) else {
     fail("Expected UnknownCommand error")
   }
-  assert_eq(parsed.command, "cache unknown")
+  assert_eq(cmd, "cache unknown")
 }
 
 // Test Unknown command error
@@ -232,7 +232,7 @@ test "parse_args: unknown command returns UnknownCommand" {
   guard result is Err(@cli.ParseError::UnknownCommand(cmd)) else {
     fail("Expected UnknownCommand error")
   }
-  assert_eq(parsed.command, "unknown")
+  assert_eq(cmd, "unknown")
 }
 
 // Test Unknown flag errors

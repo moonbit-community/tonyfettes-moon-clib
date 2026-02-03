@@ -152,34 +152,66 @@ async fn generate_timestamp() -> String {
   output.text().trim(char_set="\n\r ").to_string()
 }
 
+///| Compute the install root inside destdir based on prefix.
+fn compute_install_root(destdir : String, prefix : String) -> String {
+  if prefix.has_prefix("/") {
+    destdir + prefix
+  } else {
+    destdir + "/" + prefix
+  }
+}
+
+///|
+test "compute_install_root: absolute prefix" {
+  let root = compute_install_root("/tmp/dest", "/usr/local")
+  assert_eq(root, "/tmp/dest/usr/local")
+}
+
+///|
+test "compute_install_root: relative prefix" {
+  let root = compute_install_root("/tmp/dest", "opt/moon")
+  assert_eq(root, "/tmp/dest/opt/moon")
+}
+
 ///| Collect installed files from a destdir by scanning its contents.
 
 ///|
-/// Returns paths relative to the destdir.
-async fn collect_installed_files(destdir : String) -> Array[String] {
+/// Returns paths relative to the install prefix.
+async fn collect_installed_files(
+  destdir : String,
+  prefix : String,
+) -> Array[String] {
   let files : Array[String] = []
+  let mut root = compute_install_root(destdir, prefix)
   // Use find to list all files recursively
-  let (exit_code, output) = @process.collect_stdout("find", [
-    destdir, "-type", "f",
+  let (exit_code0, output0) = @process.collect_stdout("find", [
+    root, "-type", "f",
   ])
+  let mut exit_code = exit_code0
+  let mut output = output0
   if exit_code != 0 {
-    // Return empty if find fails (destdir might be empty)
-    return files
+    // Fallback to destdir if install root is missing
+    root = destdir
+    let (exit_code2, output2) = @process.collect_stdout("find", [
+      root, "-type", "f",
+    ])
+    exit_code = exit_code2
+    output = output2
+    if exit_code != 0 {
+      // Return empty if find fails (destdir might be empty)
+      return files
+    }
   }
   let text = output.text()
-  let destdir_prefix = if destdir.has_suffix("/") {
-    destdir
-  } else {
-    destdir + "/"
-  }
+  let root_prefix = if root.has_suffix("/") { root } else { root + "/" }
   for line in text.split("\n") {
     let path = line.to_string()
     if path.is_empty() {
       continue
     }
-    // Remove destdir prefix to get relative path
-    if path.has_prefix(destdir_prefix) {
-      let relative = path[destdir_prefix.length():].to_string()
+    // Remove root prefix to get relative path
+    if path.has_prefix(root_prefix) {
+      let relative = path[root_prefix.length():].to_string()
       if not(relative.is_empty()) {
         files.push(relative)
       }
@@ -194,16 +226,20 @@ async fn copy_files_to_prefix(destdir : String, prefix : String) -> Unit {
   // Use cp -r to recursively copy all contents
   // First ensure prefix exists
   ensure_dir(prefix)
+  let mut root = compute_install_root(destdir, prefix)
+  if not(dir_exists(root)) {
+    root = destdir
+  }
   // Copy contents of destdir to prefix
   // The destdir contains files like lib/..., include/..., etc.
   let (exit_code, output) = @process.collect_stdout("sh", [
     "-c",
-    "cp -r '\{destdir}'/* '\{prefix}'/",
+    "cp -r '\{root}'/* '\{prefix}'/",
   ])
   if exit_code != 0 {
     let msg = output.text()
     // Check if it's just an empty destdir (no files to copy)
-    let files = collect_installed_files(destdir)
+    let files = collect_installed_files(destdir, prefix)
     if files.is_empty() {
       // No files to copy, not an error
       return
@@ -264,9 +300,13 @@ async fn build_from_source(
     // Execute build
     @builder.execute_build(manifest.build, ctx)
     // Collect installed files from destdir
-    let files = collect_installed_files(destdir)
-    // Save to cache
-    @cache.save_to_cache(name, version, destdir)
+    let files = collect_installed_files(destdir, prefix)
+    // Save to cache (cache the prefix-relative contents)
+    let mut install_root = compute_install_root(destdir, prefix)
+    if not(dir_exists(install_root)) {
+      install_root = destdir
+    }
+    @cache.save_to_cache(name, version, install_root)
     // Copy files to prefix
     copy_files_to_prefix(destdir, prefix)
     files

@@ -94,19 +94,19 @@ async fn ensure_dir(path : String) -> Unit {
 ///| Save build output to cache as a tarball.
 
 ///|
-/// Creates {cache_dir}/pkg/{name}-{version}-{os}-{arch}.tar.gz from destdir contents.
+/// Creates {cache_dir}/pkg/{name}-{version}-{os}-{arch}.tar.gz from install root.
 pub async fn save_to_cache(
   name : String,
   version : String,
-  destdir : String,
+  install_root : String,
 ) -> Unit {
   let cache_path = get_pkg_cache_path(name, version)
   let pkg_dir = get_pkg_cache_dir()
   // Ensure the package cache directory exists
   ensure_dir(pkg_dir)
-  // Create tarball from destdir contents
+  // Create tarball from install root contents
   let (exit_code, output) = @process.collect_stdout("tar", [
-    "-czf", cache_path, "-C", destdir, ".",
+    "-czf", cache_path, "-C", install_root, ".",
   ])
   if exit_code != 0 {
     let msg = output.text()
