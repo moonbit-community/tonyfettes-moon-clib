@@ -220,6 +220,30 @@ async test "execute_build: variable expansion in command" {
 }
 
 ///|
+/// Test execute_build with variable expansion in env values
+async test "execute_build: variable expansion in env" {
+  let ctx : @builder.BuildContext = {
+    prefix: "/usr/local",
+    destdir: "/tmp/destdir",
+    srcdir: "/tmp",
+    jobs: 4,
+    os: "linux",
+    arch: "x86_64",
+  }
+  let env : Map[String, String] = {}
+  env["CPPFLAGS"] = "-I${PREFIX}/include"
+  let steps : Array[@types.BuildStep] = [
+    {
+      run: ["sh", "-c", "test \"$CPPFLAGS\" = -I/usr/local/include"],
+      when: None,
+      env: Some(env),
+      cwd: None,
+    },
+  ]
+  @builder.execute_build(steps, ctx)
+}
+
+///|
 /// Test execute_build skips steps with non-matching condition
 async test "execute_build: condition skips step" {
   let ctx : @builder.BuildContext = {

@@ -247,7 +247,7 @@ Each step in the `build` array is an object:
 |-------|----------|-------------|
 | `run` | Yes | Command as array of strings (avoids shell quoting issues) |
 | `when` | No | Condition for running this step |
-| `env` | No | Step-specific environment variables |
+| `env` | No | Step-specific environment variables (values support `${VAR}` expansion) |
 | `cwd` | No | Working directory relative to `${SRCDIR}` |
 
 #### Condition Matching
@@ -270,7 +270,7 @@ The `when` field controls when a step runs:
 
 ### Variable Expansion
 
-Only `${VAR}` syntax is supported. Variables are expanded in `run` array elements.
+Only `${VAR}` syntax is supported. Variables are expanded in `run` array elements and in `env` values (keys are not expanded).
 
 | Variable | Description |
 |----------|-------------|
@@ -287,6 +287,19 @@ Each build step runs with:
 
 - **cwd** = `${SRCDIR}/{cwd}` (or just `${SRCDIR}` if `cwd` is omitted)
 - **env** = inherited environment + step-specific `env` + variables above
+
+Example env usage with expansion:
+
+```json
+{
+  "run": ["./configure", "--prefix=${PREFIX}"],
+  "env": {
+    "CPPFLAGS": "-I${PREFIX}/include",
+    "LDFLAGS": "-L${PREFIX}/lib",
+    "PKG_CONFIG_PATH": "${PREFIX}/lib/pkgconfig"
+  }
+}
+```
 
 ### DESTDIR Installation Pattern
 

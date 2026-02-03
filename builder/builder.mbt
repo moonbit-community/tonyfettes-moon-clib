@@ -151,10 +151,16 @@ pub async fn execute_build(
       Some(rel_cwd) => Some(ctx.srcdir + "/" + rel_cwd)
     }
 
-    // Build extra environment variables
+    // Build extra environment variables (expand ${VAR} in values)
     let extra_env : Map[String, String] = match step.env {
       None => {}
-      Some(env) => env
+      Some(env) => {
+        let expanded : Map[String, String] = {}
+        for key, value in env {
+          expanded[key] = expand_variables(value, ctx)
+        }
+        expanded
+      }
     }
 
     // Execute the command
