@@ -1,4 +1,5 @@
 // Test helpers
+
 ///|
 fn[T : @json.FromJson + ToJson + Eq] roundtrip(value : T) -> Bool {
   let json = value.to_json()

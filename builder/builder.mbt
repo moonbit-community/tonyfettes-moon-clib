@@ -25,9 +25,7 @@ pub impl Show for BuildError with output(
   match self {
     EmptyRunArray => logger.write_string("Build step has empty run array")
     CommandFailed(code, cmd) =>
-      logger.write_string(
-        "Command failed with exit code \{code}: \{cmd}",
-      )
+      logger.write_string("Command failed with exit code \{code}: \{cmd}")
   }
 }
 

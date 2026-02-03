@@ -1,4 +1,5 @@
 // Test Install command (default)
+
 ///|
 test "parse_args: empty args returns Install(force=false)" {
   let parsed = @cli.parse_args([])
@@ -113,7 +114,10 @@ test "parse_args: repo list returns RepoList" {
 ///|
 test "parse_args: repo add <url> returns RepoAdd" {
   let parsed = @cli.parse_args(["repo", "add", "https://example.com/packages"])
-  assert_eq(parsed.command, @cli.Command::RepoAdd(url="https://example.com/packages"))
+  assert_eq(
+    parsed.command,
+    @cli.Command::RepoAdd(url="https://example.com/packages"),
+  )
 }
 
 ///|

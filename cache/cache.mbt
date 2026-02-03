@@ -19,13 +19,16 @@ pub impl Show for CacheError with output(
   logger : &@builtin.Logger,
 ) -> Unit {
   match self {
-    CreateDir(path, _) => logger.write_string("Failed to create directory " + path)
+    CreateDir(path, _) =>
+      logger.write_string("Failed to create directory " + path)
     CreateTarball(path, _) =>
       logger.write_string("Failed to create tarball " + path)
-    CacheFileNotFound(path) => logger.write_string("Cache file not found: " + path)
+    CacheFileNotFound(path) =>
+      logger.write_string("Cache file not found: " + path)
     ExtractTarball(path, _) =>
       logger.write_string("Failed to extract tarball " + path)
-    CleanFailed(kind) => logger.write_string("Failed to clean " + kind + " cache")
+    CleanFailed(kind) =>
+      logger.write_string("Failed to clean " + kind + " cache")
   }
 }
 

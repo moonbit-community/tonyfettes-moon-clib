@@ -18,7 +18,8 @@ pub impl Show for ConfigError with output(
   match self {
     ReadFile(path, _) => logger.write_string("Failed to read " + path)
     ParseJson(path, _) => logger.write_string("Invalid JSON in " + path)
-    DecodeJson(path, _) => logger.write_string("Invalid config format in " + path)
+    DecodeJson(path, _) =>
+      logger.write_string("Invalid config format in " + path)
     WriteFile(path, _) => logger.write_string("Failed to write " + path)
   }
 }

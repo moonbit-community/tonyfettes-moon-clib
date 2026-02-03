@@ -36,9 +36,7 @@ async test "format_error: verbose details" {
   let steps : Array[@types.BuildStep] = [
     { run: ["false"], when: None, env: None, cwd: None },
   ]
-  let result : Result[Unit, Error] = Ok(
-    @builder.execute_build(steps, ctx),
-  ) catch {
+  let result : Result[Unit, Error] = Ok(@builder.execute_build(steps, ctx)) catch {
     err => Err(err)
   }
   let err = match result {

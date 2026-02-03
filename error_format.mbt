@@ -4,7 +4,9 @@ fn is_missing_file(path : String, cause : String, filename : String) -> Bool {
   if not(path.has_suffix(filename)) {
     return false
   }
-  let missing = cause.contains("No such file") || cause.contains("no such file") || cause.contains("not found")
+  let missing = cause.contains("No such file") ||
+    cause.contains("no such file") ||
+    cause.contains("not found")
   missing
 }
 
@@ -31,7 +33,6 @@ pub fn format_error(
       hints.push("Run `moon run . --help` to see supported flags.")
       "Unknown flag: " + flag
     }
-
     @config.ConfigError::ReadFile(path, cause) => {
       detail = Some(cause)
       if is_missing_file(path, cause, "moon.lib.json") {
@@ -58,7 +59,6 @@ pub fn format_error(
       hints.push("Check that the path is writable.")
       "Failed to write " + path
     }
-
     @builder.BuildError::EmptyRunArray => {
       hints.push("Check build steps in the package manifest.")
       "Build step has no command."
@@ -68,7 +68,6 @@ pub fn format_error(
       hints.push("Run the command manually to debug.")
       "Build step failed."
     }
-
     @cache.CacheError::CreateDir(path, cause) => {
       detail = Some(cause)
       hints.push("Check directory permissions.")
@@ -92,7 +91,6 @@ pub fn format_error(
       hints.push("Check file permissions for the cache directory.")
       "Failed to clean " + kind + " cache"
     }
-
     @installer.InstallerError::CreateDir(path, cause) => {
       detail = Some(cause)
       hints.push("Check directory permissions.")
@@ -127,7 +125,6 @@ pub fn format_error(
       hints.push("Run `moon run . list` to see installed packages.")
       "Package '\{name}' is not installed."
     }
-
     @repository.RepositoryError::PackageNotFound(name, version) => {
       hints.push("Check repository URLs and package versions.")
       "Package not found: \{name}@\{version}"
@@ -142,7 +139,6 @@ pub fn format_error(
       hints.push("Repository data may be corrupted or incompatible.")
       "Failed to parse repository manifest."
     }
-
     @resolver.ResolverError::CircularDependency(msg) => {
       detail = Some(msg)
       hints.push("Check for circular dependencies in `moon.lib.json`.")
@@ -157,7 +153,6 @@ pub fn format_error(
       hints.push("Check repository list and network access.")
       "Failed to resolve dependencies."
     }
-
     @builtin.Failure(msg) => {
       detail = Some(msg)
       "Unexpected error."

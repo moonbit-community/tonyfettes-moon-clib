@@ -29,8 +29,7 @@ pub impl Show for InstallerError with output(
       logger.write_string("Failed to parse manifest " + path)
     WriteManifest(path, _) =>
       logger.write_string("Failed to write manifest " + path)
-    CopyFiles(path, _) =>
-      logger.write_string("Failed to copy files to " + path)
+    CopyFiles(path, _) => logger.write_string("Failed to copy files to " + path)
     TempDirCreate(_) =>
       logger.write_string("Failed to create temporary directory")
     PackageNotInstalled(name) =>
@@ -152,7 +151,8 @@ async fn generate_timestamp() -> String {
   output.text().trim(char_set="\n\r ").to_string()
 }
 
-///| Compute the install root inside destdir based on prefix.
+///|
+/// Compute the install root inside destdir based on prefix.
 fn compute_install_root(destdir : String, prefix : String) -> String {
   if prefix.has_prefix("/") {
     destdir + prefix

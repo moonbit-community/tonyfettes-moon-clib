@@ -17,8 +17,10 @@ pub impl Show for RepositoryError with output(
   match self {
     PackageNotFound(name, version) =>
       logger.write_string("Package not found: \{name}@\{version}")
-    FetchError(msg) => logger.write_string("Failed to fetch repository data: " + msg)
-    ParseError(msg) => logger.write_string("Failed to parse repository manifest: " + msg)
+    FetchError(msg) =>
+      logger.write_string("Failed to fetch repository data: " + msg)
+    ParseError(msg) =>
+      logger.write_string("Failed to parse repository manifest: " + msg)
   }
 }
 
