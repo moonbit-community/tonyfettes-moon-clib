@@ -9,6 +9,20 @@ pub suberror ResolverError {
 }
 
 ///|
+/// Human-readable error output
+pub impl Show for ResolverError with output(
+  self : ResolverError,
+  logger : &@builtin.Logger,
+) -> Unit {
+  match self {
+    CircularDependency(msg) => logger.write_string(msg)
+    PackageNotFound(name, version) =>
+      logger.write_string("Package not found: \{name}@\{version}")
+    ResolutionError(msg) => logger.write_string(msg)
+  }
+}
+
+///|
 /// A resolved package with its manifest and source repository
 pub(all) struct ResolvedPackage {
   name : String

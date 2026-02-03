@@ -16,6 +16,13 @@ pub(all) enum Command {
 } derive(Show, Eq)
 
 ///|
+/// Parsed CLI arguments
+pub(all) struct ParsedArgs {
+  command : Command
+  verbose : Bool
+} derive(Show, Eq)
+
+///|
 /// Errors that can occur during argument parsing
 pub suberror ParseError {
   UnknownCommand(String)
@@ -24,8 +31,21 @@ pub suberror ParseError {
 }
 
 ///|
+/// Human-readable error output
+pub impl Show for ParseError with output(
+  self : ParseError,
+  logger : &@builtin.Logger,
+) -> Unit {
+  match self {
+    UnknownCommand(cmd) => logger.write_string("Unknown command: " + cmd)
+    MissingArgument(msg) => logger.write_string(msg)
+    UnknownFlag(flag) => logger.write_string("Unknown flag: " + flag)
+  }
+}
+
+///|
 /// Parse command-line arguments into a Command
-pub fn parse_args(args : Array[String]) -> Command raise ParseError {
+pub fn parse_args(args : Array[String]) -> ParsedArgs raise ParseError {
   // Separate flags from positional arguments
   let flags : Array[String] = []
   let positional : Array[String] = []
@@ -36,47 +56,55 @@ pub fn parse_args(args : Array[String]) -> Command raise ParseError {
       positional.push(arg)
     }
   }
-  // Check for help/version flags first (they take precedence)
+  let mut verbose = false
+  let non_verbose_flags : Array[String] = []
   for flag in flags {
     match flag {
-      "--help" | "-h" => return Help
-      "--version" | "-v" => return Version
+      "--verbose" => verbose = true
+      _ => non_verbose_flags.push(flag)
+    }
+  }
+  // Check for help/version flags first (they take precedence)
+  for flag in non_verbose_flags {
+    match flag {
+      "--help" | "-h" => return { command: Help, verbose }
+      "--version" | "-v" => return { command: Version, verbose }
       _ => ()
     }
   }
   // If no positional arguments, it's the Install command
   if positional.is_empty() {
-    let force = check_force_flag(flags)
-    return Install(force~)
+    let force = check_force_flag(non_verbose_flags)
+    return { command: Install(force~), verbose }
   }
   // First positional argument is the subcommand
   let subcommand = positional[0]
   match subcommand {
     "list" => {
-      check_no_extra_flags(flags)
-      List
+      check_no_extra_flags(non_verbose_flags)
+      { command: List, verbose }
     }
     "info" => {
-      check_no_extra_flags(flags)
+      check_no_extra_flags(non_verbose_flags)
       if positional.length() < 2 {
         raise MissingArgument("info requires a library name")
       }
-      Info(name=positional[1])
+      { command: Info(name=positional[1]), verbose }
     }
     "remove" => {
-      check_no_extra_flags(flags)
+      check_no_extra_flags(non_verbose_flags)
       if positional.length() < 2 {
         raise MissingArgument("remove requires a library name")
       }
-      Remove(name=positional[1])
+      { command: Remove(name=positional[1]), verbose }
     }
     "repo" => {
-      check_no_extra_flags(flags)
-      parse_repo_subcommand(positional)
+      check_no_extra_flags(non_verbose_flags)
+      { command: parse_repo_subcommand(positional), verbose }
     }
     "cache" => {
-      check_no_extra_flags(flags)
-      parse_cache_subcommand(positional)
+      check_no_extra_flags(non_verbose_flags)
+      { command: parse_cache_subcommand(positional), verbose }
     }
     _ => raise UnknownCommand(subcommand)
   }

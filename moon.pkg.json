@@ -4,11 +4,13 @@
     "tonyfettes/moon-clib/types",
     "tonyfettes/moon-clib/cli",
     "tonyfettes/moon-clib/config",
+    "tonyfettes/moon-clib/builder",
     "tonyfettes/moon-clib/repository",
     "tonyfettes/moon-clib/resolver",
     "tonyfettes/moon-clib/installer",
     "tonyfettes/moon-clib/cache",
     "moonbitlang/async",
+    "moonbitlang/core/builtin",
     "moonbitlang/core/env"
   ]
 }

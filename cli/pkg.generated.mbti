@@ -2,7 +2,7 @@
 package "tonyfettes/moon-clib/cli"
 
 // Values
-pub fn parse_args(Array[String]) -> Command raise ParseError
+pub fn parse_args(Array[String]) -> ParsedArgs raise ParseError
 
 // Errors
 pub suberror ParseError {
@@ -10,6 +10,7 @@ pub suberror ParseError {
   MissingArgument(String)
   UnknownFlag(String)
 }
+pub impl Show for ParseError
 
 // Types and methods
 pub(all) enum Command {
@@ -28,6 +29,13 @@ pub(all) enum Command {
 }
 pub impl Eq for Command
 pub impl Show for Command
+
+pub(all) struct ParsedArgs {
+  command : Command
+  verbose : Bool
+}
+pub impl Eq for ParsedArgs
+pub impl Show for ParsedArgs
 
 // Type aliases
 

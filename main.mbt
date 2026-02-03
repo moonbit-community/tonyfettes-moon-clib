@@ -172,6 +172,7 @@ fn print_help() -> Unit {
   println("")
   println("OPTIONS:")
   println("    --force             Reinstall even if already installed")
+  println("    --verbose           Show detailed error information")
   println("    --help, -h          Show this help message")
   println("    --version, -v       Show version")
 }
@@ -185,6 +186,7 @@ fn print_version() -> Unit {
 ///|
 /// Main entry point
 async fn main {
+  let mut verbose = false
   try {
     let args = @env.args()
     // Skip the program name (first argument)
@@ -192,8 +194,14 @@ async fn main {
     for i = 1; i < args.length(); i = i + 1 {
       cmd_args.push(args[i])
     }
-    let cmd = @cli.parse_args(cmd_args)
-    match cmd {
+    for arg in cmd_args {
+      if arg == "--verbose" {
+        verbose = true
+      }
+    }
+    let parsed = @cli.parse_args(cmd_args)
+    verbose = parsed.verbose
+    match parsed.command {
       @cli.Command::Install(force~) => run_install(force)
       @cli.Command::List => run_list()
       @cli.Command::Info(name~) => run_info(name)
@@ -208,6 +216,16 @@ async fn main {
       @cli.Command::Version => print_version()
     }
   } catch {
-    err => println("error: \{err}")
+    err => {
+      let (message, hints, details) = format_error(err, verbose)
+      println("error: \{message}")
+      for hint in hints {
+        println("hint: \{hint}")
+      }
+      match details {
+        Some(d) => println("details: \{d}")
+        None => ()
+      }
+    }
   }
 }

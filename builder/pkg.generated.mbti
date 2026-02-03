@@ -14,8 +14,10 @@ pub fn matches_condition(@types.Condition?, String, String) -> Bool
 
 // Errors
 pub suberror BuildError {
-  BuildError(String)
+  EmptyRunArray
+  CommandFailed(Int, String)
 }
+pub impl Show for BuildError
 
 // Types and methods
 pub(all) struct BuildContext {

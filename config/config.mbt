@@ -3,7 +3,24 @@
 ///|
 /// Error type for config operations
 pub suberror ConfigError {
-  ConfigError(String)
+  ReadFile(String, String)
+  ParseJson(String, String)
+  DecodeJson(String, String)
+  WriteFile(String, String)
+}
+
+///|
+/// Human-readable error output
+pub impl Show for ConfigError with output(
+  self : ConfigError,
+  logger : &@builtin.Logger,
+) -> Unit {
+  match self {
+    ReadFile(path, _) => logger.write_string("Failed to read " + path)
+    ParseJson(path, _) => logger.write_string("Invalid JSON in " + path)
+    DecodeJson(path, _) => logger.write_string("Invalid config format in " + path)
+    WriteFile(path, _) => logger.write_string("Failed to write " + path)
+  }
 }
 
 ///| Load the global config from the config directory.
@@ -19,10 +36,10 @@ pub async fn load_config() -> @types.Config {
       return { repositories: [] }
   }
   let json = @json.parse(content) catch {
-    err => raise ConfigError("Failed to parse config.json: \{err}")
+    err => raise ParseJson(config_path, "\{err}")
   }
   @json.from_json(json) catch {
-    err => raise ConfigError("Failed to decode config.json: \{err}")
+    err => raise DecodeJson(config_path, "\{err}")
   }
 }
 
@@ -38,7 +55,7 @@ pub async fn save_config(config : @types.Config) -> Unit {
   let json = config.to_json()
   let content = json.stringify(indent=2)
   @fs.write_file(config_path, content, create=0o644) catch {
-    err => raise ConfigError("Failed to write config.json: \{err}")
+    err => raise WriteFile(config_path, "\{err}")
   }
 }
 
@@ -54,12 +71,12 @@ pub async fn load_project_deps_from(
   path : String,
 ) -> @types.ProjectDependencies {
   let content = @fs.read_file(path).text() catch {
-    err => raise ConfigError("Failed to read \{path}: \{err}")
+    err => raise ReadFile(path, "\{err}")
   }
   let json = @json.parse(content) catch {
-    err => raise ConfigError("Failed to parse \{path}: \{err}")
+    err => raise ParseJson(path, "\{err}")
   }
   @json.from_json(json) catch {
-    err => raise ConfigError("Failed to decode \{path}: \{err}")
+    err => raise DecodeJson(path, "\{err}")
   }
 }

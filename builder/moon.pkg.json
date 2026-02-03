@@ -1,7 +1,8 @@
 {
   "import": [
     "tonyfettes/moon-clib/types",
-    "moonbitlang/async/process"
+    "moonbitlang/async/process",
+    "moonbitlang/core/builtin"
   ],
   "test-import": [
     "tonyfettes/moon-clib/builder",

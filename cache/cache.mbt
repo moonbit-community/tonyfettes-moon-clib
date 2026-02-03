@@ -5,7 +5,28 @@
 ///|
 /// Error type for cache operations
 pub suberror CacheError {
-  CacheError(String)
+  CreateDir(String, String)
+  CreateTarball(String, String)
+  CacheFileNotFound(String)
+  ExtractTarball(String, String)
+  CleanFailed(String)
+}
+
+///|
+/// Human-readable error output
+pub impl Show for CacheError with output(
+  self : CacheError,
+  logger : &@builtin.Logger,
+) -> Unit {
+  match self {
+    CreateDir(path, _) => logger.write_string("Failed to create directory " + path)
+    CreateTarball(path, _) =>
+      logger.write_string("Failed to create tarball " + path)
+    CacheFileNotFound(path) => logger.write_string("Cache file not found: " + path)
+    ExtractTarball(path, _) =>
+      logger.write_string("Failed to extract tarball " + path)
+    CleanFailed(kind) => logger.write_string("Failed to clean " + kind + " cache")
+  }
 }
 
 ///| Get the package cache directory (for built tarballs).
@@ -65,7 +86,7 @@ async fn ensure_dir(path : String) -> Unit {
     let (exit_code, output) = @process.collect_stdout("mkdir", ["-p", path])
     if exit_code != 0 {
       let msg = output.text()
-      raise CacheError("Failed to create directory \{path}: \{msg}")
+      raise CreateDir(path, msg)
     }
   }
 }
@@ -89,7 +110,7 @@ pub async fn save_to_cache(
   ])
   if exit_code != 0 {
     let msg = output.text()
-    raise CacheError("Failed to create tarball \{cache_path}: \{msg}")
+    raise CreateTarball(cache_path, msg)
   }
 }
 
@@ -105,7 +126,7 @@ pub async fn extract_from_cache(
   let cache_path = get_pkg_cache_path(name, version)
   // Check if the cache file exists
   if not(file_exists(cache_path)) {
-    raise CacheError("Cache file not found: \{cache_path}")
+    raise CacheFileNotFound(cache_path)
   }
   // Ensure the prefix directory exists
   ensure_dir(prefix)
@@ -115,7 +136,7 @@ pub async fn extract_from_cache(
   ])
   if exit_code != 0 {
     let msg = output.text()
-    raise CacheError("Failed to extract tarball \{cache_path}: \{msg}")
+    raise ExtractTarball(cache_path, msg)
   }
   // Parse the verbose output to get file list
   let text = output.text()
@@ -224,7 +245,7 @@ pub async fn clean_cache() -> Unit {
       // Only raise if directory exists and has content
       let entries = @fs.readdir(pkg_dir) catch { _ => [] }
       if entries.length() > 0 {
-        raise CacheError("Failed to clean pkg cache")
+        raise CleanFailed("pkg")
       }
     }
   }
@@ -238,7 +259,7 @@ pub async fn clean_cache() -> Unit {
       // Only raise if directory exists and has content
       let entries = @fs.readdir(src_dir) catch { _ => [] }
       if entries.length() > 0 {
-        raise CacheError("Failed to clean src cache")
+        raise CleanFailed("src")
       }
     }
   }

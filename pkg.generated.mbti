@@ -2,6 +2,7 @@
 package "tonyfettes/moon-clib"
 
 // Values
+pub fn format_error(Error, Bool) -> (String, Array[String], String?)
 
 // Errors
 

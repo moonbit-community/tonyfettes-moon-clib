@@ -5,7 +5,37 @@
 ///|
 /// Error type for installer operations
 pub suberror InstallerError {
-  InstallerError(String)
+  CreateDir(String, String)
+  ReadManifest(String, String)
+  ParseManifest(String, String)
+  WriteManifest(String, String)
+  CopyFiles(String, String)
+  TempDirCreate(String)
+  PackageNotInstalled(String)
+}
+
+///|
+/// Human-readable error output
+pub impl Show for InstallerError with output(
+  self : InstallerError,
+  logger : &@builtin.Logger,
+) -> Unit {
+  match self {
+    CreateDir(path, _) =>
+      logger.write_string("Failed to create directory " + path)
+    ReadManifest(path, _) =>
+      logger.write_string("Failed to read manifest " + path)
+    ParseManifest(path, _) =>
+      logger.write_string("Failed to parse manifest " + path)
+    WriteManifest(path, _) =>
+      logger.write_string("Failed to write manifest " + path)
+    CopyFiles(path, _) =>
+      logger.write_string("Failed to copy files to " + path)
+    TempDirCreate(_) =>
+      logger.write_string("Failed to create temporary directory")
+    PackageNotInstalled(name) =>
+      logger.write_string("Package '\{name}' is not installed")
+  }
 }
 
 ///| Get the path to the install manifest file.
@@ -38,7 +68,7 @@ async fn ensure_dir(path : String) -> Unit {
     let (exit_code, output) = @process.collect_stdout("mkdir", ["-p", path])
     if exit_code != 0 {
       let msg = output.text()
-      raise InstallerError("Failed to create directory \{path}: \{msg}")
+      raise CreateDir(path, msg)
     }
   }
 }
@@ -75,13 +105,13 @@ pub async fn load_install_manifest() -> @types.InstallManifest {
     return { installed: {} }
   }
   let content = @fs.read_file(manifest_path).text() catch {
-    err => raise InstallerError("Failed to read manifest: \{err}")
+    err => raise ReadManifest(manifest_path, "\{err}")
   }
   try {
     let json = @json.parse(content)
     @json.from_json(json)
   } catch {
-    err => raise InstallerError("Failed to parse manifest: \{err}")
+    err => raise ParseManifest(manifest_path, "\{err}")
   }
 }
 
@@ -94,7 +124,7 @@ pub async fn save_install_manifest(manifest : @types.InstallManifest) -> Unit {
   let json = manifest.to_json()
   let text = json.stringify()
   @fs.write_file(manifest_path, text, create=0o644) catch {
-    err => raise InstallerError("Failed to write manifest: \{err}")
+    err => raise WriteManifest(manifest_path, "\{err}")
   }
 }
 
@@ -178,7 +208,7 @@ async fn copy_files_to_prefix(destdir : String, prefix : String) -> Unit {
       // No files to copy, not an error
       return
     }
-    raise InstallerError("Failed to copy files to prefix: \{msg}")
+    raise CopyFiles(prefix, msg)
   }
 }
 
@@ -187,7 +217,7 @@ async fn copy_files_to_prefix(destdir : String, prefix : String) -> Unit {
 async fn create_temp_destdir() -> String {
   let (exit_code, output) = @process.collect_stdout("mktemp", ["-d"])
   if exit_code != 0 {
-    raise InstallerError("Failed to create temporary directory")
+    raise TempDirCreate(output.text())
   }
   output.text().trim(char_set="\n\r ").to_string()
 }
@@ -308,7 +338,7 @@ pub async fn install_package(
 pub async fn remove_package(name : String) -> Unit {
   let manifest = load_install_manifest()
   match manifest.installed.get(name) {
-    None => raise InstallerError("Package '\{name}' is not installed")
+    None => raise PackageNotInstalled(name)
     Some(lib) => {
       let prefix = @env.get_moon_home()
       // Delete all installed files

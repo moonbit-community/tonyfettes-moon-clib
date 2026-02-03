@@ -39,7 +39,7 @@ async test "is_installed returns false for non-existent package" {
 async test "remove_package raises error for non-existent package" {
   let mut raised = false
   @installer.remove_package("non-existent-package-for-removal-xyz") catch {
-    @installer.InstallerError(_) => raised = true
+    @installer.InstallerError::PackageNotInstalled(_) => raised = true
     _ => fail("Expected InstallerError")
   }
   assert_true(raised)

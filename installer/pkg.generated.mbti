@@ -19,8 +19,15 @@ pub async fn save_install_manifest(@types.InstallManifest) -> Unit
 
 // Errors
 pub suberror InstallerError {
-  InstallerError(String)
+  CreateDir(String, String)
+  ReadManifest(String, String)
+  ParseManifest(String, String)
+  WriteManifest(String, String)
+  CopyFiles(String, String)
+  TempDirCreate(String)
+  PackageNotInstalled(String)
 }
+pub impl Show for InstallerError
 
 // Types and methods
 

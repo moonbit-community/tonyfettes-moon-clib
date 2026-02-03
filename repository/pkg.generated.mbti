@@ -18,6 +18,7 @@ pub suberror RepositoryError {
   FetchError(String)
   ParseError(String)
 }
+pub impl Show for RepositoryError
 
 // Types and methods
 pub(all) struct Repository {

@@ -3,6 +3,7 @@
     "tonyfettes/moon-clib/types",
     "moonbitlang/async/fs",
     "moonbitlang/async/http",
+    "moonbitlang/core/builtin",
     "moonbitlang/core/json",
     "moonbitlang/core/encoding/utf8"
   ],

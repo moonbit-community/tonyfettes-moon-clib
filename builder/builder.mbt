@@ -12,7 +12,23 @@ pub(all) struct BuildContext {
 ///|
 /// Error type for builder operations
 pub suberror BuildError {
-  BuildError(String)
+  EmptyRunArray
+  CommandFailed(Int, String)
+}
+
+///|
+/// Human-readable error output
+pub impl Show for BuildError with output(
+  self : BuildError,
+  logger : &@builtin.Logger,
+) -> Unit {
+  match self {
+    EmptyRunArray => logger.write_string("Build step has empty run array")
+    CommandFailed(code, cmd) =>
+      logger.write_string(
+        "Command failed with exit code \{code}: \{cmd}",
+      )
+  }
 }
 
 ///| Expand variables in a string using the build context.
@@ -123,7 +139,7 @@ pub async fn execute_build(
 
     // Must have at least one element (the command)
     if expanded_cmd.is_empty() {
-      raise BuildError("Build step has empty run array")
+      raise EmptyRunArray
     }
     let cmd = expanded_cmd[0]
     let args : Array[String] = []
@@ -160,7 +176,7 @@ pub async fn execute_build(
             acc + " " + s
           }
         })
-      raise BuildError("Command failed with exit code \{exit_code}: \{cmd_str}")
+      raise CommandFailed(exit_code, cmd_str)
     }
   }
 }

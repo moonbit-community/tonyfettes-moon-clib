@@ -16,8 +16,12 @@ pub async fn save_config(@types.Config) -> Unit
 
 // Errors
 pub suberror ConfigError {
-  ConfigError(String)
+  ReadFile(String, String)
+  ParseJson(String, String)
+  DecodeJson(String, String)
+  WriteFile(String, String)
 }
+pub impl Show for ConfigError
 
 // Types and methods
 

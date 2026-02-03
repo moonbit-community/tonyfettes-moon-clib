@@ -2,7 +2,8 @@
   "import": [
     "tonyfettes/moon-clib/env",
     "moonbitlang/async/fs",
-    "moonbitlang/async/process"
+    "moonbitlang/async/process",
+    "moonbitlang/core/builtin"
   ],
   "test-import": [
     "tonyfettes/moon-clib/cache",

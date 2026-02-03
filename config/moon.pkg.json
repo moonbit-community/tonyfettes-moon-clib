@@ -3,6 +3,7 @@
     "tonyfettes/moon-clib/types",
     "tonyfettes/moon-clib/env",
     "moonbitlang/async/fs",
+    "moonbitlang/core/builtin",
     "moonbitlang/core/json"
   ],
   "test-import": [

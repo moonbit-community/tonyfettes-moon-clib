@@ -20,8 +20,13 @@ pub async fn save_to_cache(String, String, String) -> Unit
 
 // Errors
 pub suberror CacheError {
-  CacheError(String)
+  CreateDir(String, String)
+  CreateTarball(String, String)
+  CacheFileNotFound(String)
+  ExtractTarball(String, String)
+  CleanFailed(String)
 }
+pub impl Show for CacheError
 
 // Types and methods
 
