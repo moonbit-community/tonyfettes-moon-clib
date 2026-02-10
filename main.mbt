@@ -11,7 +11,7 @@ async fn run_install(force : Bool) -> Unit {
   let config = @config.load_config()
   let repos : Array[@repository.Repository] = []
   for url in config.repositories {
-    repos.push(@repository.Repository::new(url))
+    repos.push(@repository.resolve_repository(url))
   }
   let packages = @resolver.resolve_dependencies(project.dependencies, repos)
   for pkg in packages {
@@ -91,6 +91,7 @@ async fn run_repo_add(url : String) -> Unit {
       return
     }
   }
+  @repository.validate_repository(url)
   config.repositories.push(url)
   @config.save_config(config)
   println("Added repository: \{url}")
@@ -119,10 +120,19 @@ async fn run_repo_remove(url : String) -> Unit {
 }
 
 ///|
-/// Run the repo update command (placeholder)
-fn run_repo_update() -> Unit {
-  println("Repository update is not yet implemented.")
-  println("This will sync repository indexes in the future.")
+/// Run the repo update command
+async fn run_repo_update() -> Unit {
+  let config = @config.load_config()
+  if config.repositories.is_empty() {
+    println("No repositories configured.")
+    return
+  }
+  println("Updating repositories...")
+  for url in config.repositories {
+    ignore(@repository.update_repository(url))
+    println("  synced: \{url}")
+  }
+  println("Repository update complete.")
 }
 
 ///|
@@ -165,7 +175,7 @@ fn print_help() -> Unit {
   println("    repo list           List configured repositories")
   println("    repo add <url>      Add a repository")
   println("    repo remove <url>   Remove a repository")
-  println("    repo update         Update repository indexes (placeholder)")
+  println("    repo update         Update repository indexes")
   println("")
   println("    cache list          List cached packages")
   println("    cache clean         Remove all cached packages")

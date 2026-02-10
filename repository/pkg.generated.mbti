@@ -12,6 +12,12 @@ pub async fn fetch_package_file(Repository, String, String, String) -> Bytes
 
 pub async fn find_package(Array[Repository], String, String) -> (Repository, @types.PackageManifest)
 
+pub async fn resolve_repository(String) -> Repository
+
+pub async fn update_repository(String) -> Repository
+
+pub async fn validate_repository(String) -> Unit
+
 // Errors
 pub suberror RepositoryError {
   PackageNotFound(String, String)

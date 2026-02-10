@@ -32,10 +32,52 @@ pub(all) struct Repository {
 
 ///|
 /// Create a new repository from a URL or local path.
-/// Detects if the path is local by checking if it exists on the filesystem.
+/// Detects if the path is local by checking if it exists and is a directory.
 pub async fn Repository::new(url : String) -> Repository {
-  let is_local = @fs.exists(url)
+  let is_local = if @fs.exists(url) { is_directory(url) } else { false }
   { url, is_local }
+}
+
+///|
+/// Validate a configured repository input.
+///
+/// Rules:
+/// - existing directory path => valid local repository
+/// - otherwise => must be a valid git remote (`git ls-remote`)
+pub async fn validate_repository(url : String) -> Unit {
+  if @fs.exists(url) {
+    if not(is_directory(url)) {
+      raise FetchError("Repository path is not a directory: \{url}")
+    }
+    return
+  }
+  let (exit_code, message) = run_git(["ls-remote", url])
+  if exit_code != 0 {
+    let detail = with_detail("Invalid git repository '\{url}'", message)
+    raise FetchError(detail)
+  }
+}
+
+///|
+/// Resolve a configured repository to a local path.
+///
+/// Local repositories are returned as-is.
+/// Git remotes are cloned/fetched into a local mirror cache.
+pub async fn resolve_repository(url : String) -> Repository {
+  if @fs.exists(url) {
+    if not(is_directory(url)) {
+      raise FetchError("Repository path is not a directory: \{url}")
+    }
+    return { url, is_local: true }
+  }
+  let mirror_path = sync_git_repository(url)
+  { url: mirror_path, is_local: true }
+}
+
+///|
+/// Update/sync a repository and return its resolved local form.
+pub async fn update_repository(url : String) -> Repository {
+  resolve_repository(url)
 }
 
 ///|
@@ -110,11 +152,7 @@ async fn fetch_local_file(repo_path : String, file_path : String) -> Bytes {
 /// Fetch a file from a remote repository via HTTP.
 async fn fetch_remote_file(repo_url : String, file_path : String) -> Bytes {
   // Ensure URL doesn't have trailing slash
-  let base_url = if repo_url.has_suffix("/") {
-    repo_url[:repo_url.length() - 1].to_string()
-  } else {
-    repo_url
-  }
+  let base_url = strip_trailing_slash(repo_url)
   let url = "\{base_url}/\{file_path}"
   try {
     let (response, body) = @http.get(url)
@@ -139,5 +177,117 @@ fn parse_manifest(content : Bytes) -> @types.PackageManifest raise {
     @json.from_json(json)
   } catch {
     err => raise ParseError("Failed to parse manifest: \{err}")
+  }
+}
+
+///|
+/// Check whether a path is a directory.
+async fn is_directory(path : String) -> Bool {
+  let (exit_code, _) = @process.collect_stdout("test", ["-d", path])
+  exit_code == 0
+}
+
+///|
+/// Run a git command and return (exit_code, trimmed_stderr_stdout).
+async fn run_git(args : FixedArray[String]) -> (Int, String) {
+  let (exit_code, output) = @process.collect_stdout("git", args[:])
+  let message = output.text().trim(char_set="\n\r ").to_string()
+  (exit_code, message)
+}
+
+///|
+/// Ensure a directory exists.
+async fn ensure_dir(path : String) -> Unit {
+  if @fs.exists(path) {
+    if not(is_directory(path)) {
+      raise FetchError("Path exists but is not a directory: \{path}")
+    }
+    return
+  }
+  @fs.mkdir(path, permission=0o755, recursive=true) catch {
+    err => raise FetchError("Failed to create directory \{path}: \{err}")
+  }
+}
+
+///|
+/// Build a deterministic cache key for a repository URL.
+fn cache_key_for_repository(url : String) -> String {
+  let hash_text = "\{url.hash()}".replace_all(old="-", new="_")
+  "\{url.length()}-\{hash_text}"
+}
+
+///|
+/// Return the mirror root directory under the cache.
+async fn mirror_root_dir() -> String {
+  @env.get_cache_dir() + "/repos"
+}
+
+///|
+/// Clone or update a git repository into the local cache.
+async fn sync_git_repository(url : String) -> String {
+  let root = mirror_root_dir()
+  ensure_dir(root)
+  let mirror_path = "\{root}/\{cache_key_for_repository(url)}"
+  if not(@fs.exists(mirror_path)) {
+    let (exit_code, message) = run_git([
+      "clone", "--depth", "1", url, mirror_path,
+    ])
+    if exit_code != 0 {
+      let detail = with_detail("Failed to clone repository '\{url}'", message)
+      raise FetchError(detail)
+    }
+    return mirror_path
+  }
+  if not(is_directory(mirror_path)) {
+    raise FetchError(
+      "Repository mirror path is not a directory: \{mirror_path}",
+    )
+  }
+  let (fetch_code, fetch_message) = run_git([
+    "-C", mirror_path, "fetch", "--depth", "1", "origin",
+  ])
+  if fetch_code != 0 {
+    let detail = with_detail(
+      "Failed to fetch repository '\{url}'",
+      fetch_message,
+    )
+    raise FetchError(detail)
+  }
+  let (reset_code, reset_message) = run_git([
+    "-C", mirror_path, "reset", "--hard", "FETCH_HEAD",
+  ])
+  if reset_code != 0 {
+    let detail = with_detail(
+      "Failed to reset repository '\{url}' to FETCH_HEAD",
+      reset_message,
+    )
+    raise FetchError(detail)
+  }
+  mirror_path
+}
+
+///|
+/// Strip a trailing slash from a URL/path if present.
+fn strip_trailing_slash(text : String) -> String {
+  if not(text.has_suffix("/")) {
+    return text
+  }
+  if text.length() <= 1 {
+    return text
+  }
+  let builder = StringBuilder::new()
+  for i = 0; i < text.length() - 1; i = i + 1 {
+    builder.write_char(text[i].to_int().unsafe_to_char())
+  }
+  builder.to_string()
+}
+
+///|
+/// Attach optional command output detail to an error prefix.
+fn with_detail(prefix : String, detail : String) -> String {
+  if detail.is_empty() {
+    prefix
+  } else {
+    "\{prefix}: \{detail}"
   }
 }

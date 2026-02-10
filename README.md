@@ -45,7 +45,7 @@ moon-clib remove <name>        # Remove an installed library
 moon-clib repo list            # List configured repositories
 moon-clib repo add <url>       # Add a repository (URL or local path)
 moon-clib repo remove <url>    # Remove a repository
-moon-clib repo update          # Update repository indexes (placeholder)
+moon-clib repo update          # Update repository indexes
 
 moon-clib cache list           # List cached packages
 moon-clib cache clean          # Remove all cached packages
@@ -92,7 +92,9 @@ If no repositories are configured, `moon-clib` cannot resolve packages.
 
 ## Package Repositories
 
-A package repository can be a local directory or a remote HTTP host. Layout is:
+A package repository can be a local directory or a remote Git repository URL.
+Remote Git repositories are mirrored under the moon-clib cache and synced during install/update.
+Layout is:
 
 ```text
 {repo}/
