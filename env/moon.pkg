@@ -1,6 +1,6 @@
 import {
   "moonbitlang/async/process",
-  "moonbitlang/core/strconv",
+  "moonbitlang/core/string",
 }
 
 import {

@@ -65,7 +65,7 @@ pub async fn get_jobs() -> Int {
   }
   let jobs_str = output.text().trim(char_set="\n\r ").to_string()
   try {
-    let n = @strconv.parse_int(jobs_str)
+    let n = @string.parse_int(jobs_str)
     if n > 0 {
       n
     } else {
