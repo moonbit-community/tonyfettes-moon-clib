@@ -2,6 +2,7 @@ import {
   "tonyfettes/moon-clib/types",
   "moonbitlang/async/process",
   "moonbitlang/core/builtin",
+  "moonbitlang/core/debug",
 }
 
 import {

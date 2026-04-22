@@ -13,14 +13,24 @@ pub(all) enum Command {
   CacheClean
   Help
   Version
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for Command with output(self, logger) -> Unit {
+  logger.write_string(@debug.to_string(self))
+}
 
 ///|
 /// Parsed CLI arguments
 pub(all) struct ParsedArgs {
   command : Command
   verbose : Bool
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for ParsedArgs with output(self, logger) -> Unit {
+  logger.write_string(@debug.to_string(self))
+}
 
 ///|
 /// Errors that can occur during argument parsing

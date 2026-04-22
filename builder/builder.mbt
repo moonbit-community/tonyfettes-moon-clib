@@ -7,7 +7,12 @@ pub(all) struct BuildContext {
   jobs : Int // Parallel job count
   os : String // Current OS
   arch : String // Current architecture
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for BuildContext with output(self, logger) -> Unit {
+  logger.write_string(@debug.to_string(self))
+}
 
 ///|
 /// Error type for builder operations

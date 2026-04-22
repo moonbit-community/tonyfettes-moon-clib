@@ -29,7 +29,12 @@ pub(all) struct ResolvedPackage {
   version : String
   manifest : @types.PackageManifest
   repository : @repository.Repository
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for ResolvedPackage with output(self, logger) -> Unit {
+  logger.write_string(@debug.to_string(self))
+}
 
 ///|
 /// Internal node for building the dependency graph

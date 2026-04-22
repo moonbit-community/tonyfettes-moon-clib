@@ -28,7 +28,12 @@ pub impl Show for RepositoryError with output(
 pub(all) struct Repository {
   url : String
   is_local : Bool
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for Repository with output(self, logger) -> Unit {
+  logger.write_string(@debug.to_string(self))
+}
 
 ///|
 /// Create a new repository from a URL or local path.
