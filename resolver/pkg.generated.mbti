@@ -2,6 +2,7 @@
 package "tonyfettes/moon-clib/resolver"
 
 import {
+  "moonbitlang/core/debug",
   "tonyfettes/moon-clib/repository",
   "tonyfettes/moon-clib/types",
 }
@@ -23,8 +24,7 @@ pub(all) struct ResolvedPackage {
   version : String
   manifest : @types.PackageManifest
   repository : @repository.Repository
-}
-pub impl Eq for ResolvedPackage
+} derive(Eq, @debug.Debug)
 pub impl Show for ResolvedPackage
 
 // Type aliases

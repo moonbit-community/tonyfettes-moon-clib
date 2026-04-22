@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "tonyfettes/moon-clib/cli"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn parse_args(Array[String]) -> ParsedArgs raise ParseError
 
@@ -26,15 +30,13 @@ pub(all) enum Command {
   CacheClean
   Help
   Version
-}
-pub impl Eq for Command
+} derive(Eq, @debug.Debug)
 pub impl Show for Command
 
 pub(all) struct ParsedArgs {
   command : Command
   verbose : Bool
-}
-pub impl Eq for ParsedArgs
+} derive(Eq, @debug.Debug)
 pub impl Show for ParsedArgs
 
 // Type aliases
