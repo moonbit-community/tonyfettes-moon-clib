@@ -233,7 +233,7 @@ async fn sync_git_repository(url : String) -> String {
   let root = mirror_root_dir()
   ensure_dir(root)
   let mirror_path = "\{root}/\{cache_key_for_repository(url)}"
-  if !(@fs.exists(mirror_path)) {
+  if !@fs.exists(mirror_path) {
     let (exit_code, message) = run_git([
       "clone", "--depth", "1", url, mirror_path,
     ])
