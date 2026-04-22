@@ -149,7 +149,7 @@ pub async fn fetch_sources(
 /// Uses: curl -fsSL {url} | tar -xz --strip-components={n} -C {dest}
 pub async fn fetch_tarball(src : @types.TarballSource, dest : String) -> Unit {
   // Ensure destination directory exists
-  if not(@fs.exists(dest)) {
+  if !(@fs.exists(dest)) {
     @fs.mkdir(dest, permission=0o755, recursive=true) catch {
       _ => () // Directory may already exist
     }
@@ -276,7 +276,7 @@ async fn ensure_parent_dir(path : String) -> Unit {
       builder.write_char(path[i].to_int().unsafe_to_char())
     }
     let parent = builder.to_string()
-    if not(@fs.exists(parent)) {
+    if !(@fs.exists(parent)) {
       @fs.mkdir(parent, permission=0o755, recursive=true) catch {
         _ => () // Directory may already exist
       }

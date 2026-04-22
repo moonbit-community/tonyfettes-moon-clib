@@ -63,7 +63,7 @@ async fn dir_exists(path : String) -> Bool {
 ///|
 /// Ensure a directory exists, creating it if necessary.
 async fn ensure_dir(path : String) -> Unit {
-  if not(dir_exists(path)) {
+  if !dir_exists(path) {
     let (exit_code, output) = @process.collect_stdout("mkdir", ["-p", path])
     if exit_code != 0 {
       let msg = output.text()
@@ -99,7 +99,7 @@ async fn ensure_parent_dir(path : String) -> Unit {
 /// Returns an empty manifest if the file doesn't exist.
 pub async fn load_install_manifest() -> @types.InstallManifest {
   let manifest_path = get_manifest_path()
-  if not(file_exists(manifest_path)) {
+  if !file_exists(manifest_path) {
     // Return empty manifest if file doesn't exist
     return { installed: {} }
   }
@@ -212,7 +212,7 @@ async fn collect_installed_files(
     // Remove root prefix to get relative path
     if path.has_prefix(root_prefix) {
       let relative = path[root_prefix.length():].to_string()
-      if not(relative.is_empty()) {
+      if !relative.is_empty() {
         files.push(relative)
       }
     }
@@ -227,7 +227,7 @@ async fn copy_files_to_prefix(destdir : String, prefix : String) -> Unit {
   // First ensure prefix exists
   ensure_dir(prefix)
   let mut root = compute_install_root(destdir, prefix)
-  if not(dir_exists(root)) {
+  if !dir_exists(root) {
     root = destdir
   }
   // Copy contents of destdir to prefix
@@ -303,7 +303,7 @@ async fn build_from_source(
     let files = collect_installed_files(destdir, prefix)
     // Save to cache (cache the prefix-relative contents)
     let mut install_root = compute_install_root(destdir, prefix)
-    if not(dir_exists(install_root)) {
+    if !dir_exists(install_root) {
       install_root = destdir
     }
     @cache.save_to_cache(name, version, install_root)
@@ -346,7 +346,7 @@ pub async fn install_package(
   force~ : Bool,
 ) -> Unit {
   // Step 1: Check if already installed
-  if not(force) && is_installed(name, version) {
+  if !force && is_installed(name, version) {
     // Already installed with matching version, skip
     return
   }

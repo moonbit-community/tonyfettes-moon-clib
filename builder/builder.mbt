@@ -125,7 +125,7 @@ pub async fn execute_build(
 ) -> Unit {
   for step in steps {
     // Check if condition matches
-    if not(matches_condition(step.when, ctx.os, ctx.arch)) {
+    if !matches_condition(step.when, ctx.os, ctx.arch) {
       continue
     }
 
