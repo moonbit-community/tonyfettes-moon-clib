@@ -9,3 +9,5 @@ import {
   "tonyfettes/moon-clib/builder",
   "moonbitlang/async",
 } for "test"
+
+supported_targets = "native"
