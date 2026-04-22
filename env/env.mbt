@@ -164,7 +164,7 @@ pub async fn get_home_dir() -> String {
   let (exit_code, output) = @process.collect_stdout("sh", ["-c", "echo $HOME"])
   if exit_code == 0 {
     let home = output.text().trim(char_set="\n\r ").to_string()
-    if not(home.is_empty()) {
+    if !home.is_empty() {
       return home
     }
   }

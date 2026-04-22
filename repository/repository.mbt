@@ -46,7 +46,7 @@ pub async fn Repository::new(url : String) -> Repository {
 /// - otherwise => must be a valid git remote (`git ls-remote`)
 pub async fn validate_repository(url : String) -> Unit {
   if @fs.exists(url) {
-    if not(is_directory(url)) {
+    if !is_directory(url) {
       raise FetchError("Repository path is not a directory: \{url}")
     }
     return
@@ -65,7 +65,7 @@ pub async fn validate_repository(url : String) -> Unit {
 /// Git remotes are cloned/fetched into a local mirror cache.
 pub async fn resolve_repository(url : String) -> Repository {
   if @fs.exists(url) {
-    if not(is_directory(url)) {
+    if !is_directory(url) {
       raise FetchError("Repository path is not a directory: \{url}")
     }
     return { url, is_local: true }
@@ -199,7 +199,7 @@ async fn run_git(args : FixedArray[String]) -> (Int, String) {
 /// Ensure a directory exists.
 async fn ensure_dir(path : String) -> Unit {
   if @fs.exists(path) {
-    if not(is_directory(path)) {
+    if !is_directory(path) {
       raise FetchError("Path exists but is not a directory: \{path}")
     }
     return
@@ -228,7 +228,7 @@ async fn sync_git_repository(url : String) -> String {
   let root = mirror_root_dir()
   ensure_dir(root)
   let mirror_path = "\{root}/\{cache_key_for_repository(url)}"
-  if not(@fs.exists(mirror_path)) {
+  if !(@fs.exists(mirror_path)) {
     let (exit_code, message) = run_git([
       "clone", "--depth", "1", url, mirror_path,
     ])
@@ -238,7 +238,7 @@ async fn sync_git_repository(url : String) -> String {
     }
     return mirror_path
   }
-  if not(is_directory(mirror_path)) {
+  if !is_directory(mirror_path) {
     raise FetchError(
       "Repository mirror path is not a directory: \{mirror_path}",
     )
@@ -269,7 +269,7 @@ async fn sync_git_repository(url : String) -> String {
 ///|
 /// Strip a trailing slash from a URL/path if present.
 fn strip_trailing_slash(text : String) -> String {
-  if not(text.has_suffix("/")) {
+  if !text.has_suffix("/") {
     return text
   }
   if text.length() <= 1 {

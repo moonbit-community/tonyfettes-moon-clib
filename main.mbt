@@ -110,7 +110,7 @@ async fn run_repo_remove(url : String) -> Unit {
       new_repos.push(existing)
     }
   }
-  if not(found) {
+  if !found {
     println("Repository '\{url}' is not configured.")
     return
   }

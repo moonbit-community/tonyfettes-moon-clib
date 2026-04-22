@@ -1,7 +1,7 @@
 ///|
 /// Error formatting for CLI output
 fn is_missing_file(path : String, cause : String, filename : String) -> Bool {
-  if not(path.has_suffix(filename)) {
+  if !path.has_suffix(filename) {
     return false
   }
   let missing = cause.contains("No such file") ||
@@ -160,7 +160,7 @@ pub fn format_error(
     _ => "Unexpected error."
   }
 
-  if not(verbose) {
+  if !verbose {
     match detail {
       Some(_) => hints.push("Run with `--verbose` for more details.")
       None => ()

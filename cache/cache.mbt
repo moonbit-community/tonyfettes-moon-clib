@@ -85,7 +85,7 @@ async fn dir_exists(path : String) -> Bool {
 ///|
 /// Ensure a directory exists, creating it if necessary.
 async fn ensure_dir(path : String) -> Unit {
-  if not(dir_exists(path)) {
+  if !dir_exists(path) {
     let (exit_code, output) = @process.collect_stdout("mkdir", ["-p", path])
     if exit_code != 0 {
       let msg = output.text()
@@ -128,7 +128,7 @@ pub async fn extract_from_cache(
 ) -> Array[String] {
   let cache_path = get_pkg_cache_path(name, version)
   // Check if the cache file exists
-  if not(file_exists(cache_path)) {
+  if !file_exists(cache_path) {
     raise CacheFileNotFound(cache_path)
   }
   // Ensure the prefix directory exists
@@ -151,7 +151,7 @@ pub async fn extract_from_cache(
     }
     // Clean up paths (remove leading ./ if present)
     let cleaned = if s.has_prefix("./") { s[2:].to_string() } else { s }
-    if not(cleaned.is_empty()) {
+    if !cleaned.is_empty() {
       result.push(cleaned)
     }
   }
@@ -165,7 +165,7 @@ pub async fn extract_from_cache(
 pub async fn list_cached() -> Array[(String, String)] {
   let pkg_dir = get_pkg_cache_dir()
   // Check if directory exists
-  if not(dir_exists(pkg_dir)) {
+  if !dir_exists(pkg_dir) {
     return []
   }
   // List all .tar.gz files in the package cache directory
