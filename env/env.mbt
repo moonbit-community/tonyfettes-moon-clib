@@ -65,7 +65,7 @@ pub async fn get_jobs() -> Int {
   }
   let jobs_str = output.text().trim(char_set="\n\r ").to_string()
   try {
-    let n = @strconv.parse_int(jobs_str)
+    let n = @string.parse_int(jobs_str)
     if n > 0 {
       n
     } else {
@@ -164,7 +164,7 @@ pub async fn get_home_dir() -> String {
   let (exit_code, output) = @process.collect_stdout("sh", ["-c", "echo $HOME"])
   if exit_code == 0 {
     let home = output.text().trim(char_set="\n\r ").to_string()
-    if not(home.is_empty()) {
+    if !home.is_empty() {
       return home
     }
   }

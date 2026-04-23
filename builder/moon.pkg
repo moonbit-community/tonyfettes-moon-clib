@@ -2,9 +2,12 @@ import {
   "tonyfettes/moon-clib/types",
   "moonbitlang/async/process",
   "moonbitlang/core/builtin",
+  "moonbitlang/core/debug",
 }
 
 import {
   "tonyfettes/moon-clib/builder",
   "moonbitlang/async",
 } for "test"
+
+supported_targets = "native"

@@ -1,9 +1,11 @@
 import {
   "moonbitlang/async/process",
-  "moonbitlang/core/strconv",
+  "moonbitlang/core/string",
 }
 
 import {
   "tonyfettes/moon-clib/env",
   "moonbitlang/async",
 } for "test"
+
+supported_targets = "native"

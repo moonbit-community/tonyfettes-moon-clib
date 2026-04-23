@@ -1,9 +1,19 @@
 ///|
+fn[T : Debug] output_debug(value : T, logger : &Logger) -> Unit {
+  logger.write_string(@debug.to_string(value))
+}
+
+///|
 /// Build step conditions based on OS and architecture
 pub(all) struct Condition {
   os : String?
   arch : String?
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for Condition with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for Condition with to_json(self) -> Json {
@@ -42,7 +52,12 @@ pub(all) struct BuildStep {
   when : Condition?
   env : Map[String, String]?
   cwd : String?
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for BuildStep with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for BuildStep with to_json(self) -> Json {
@@ -94,7 +109,12 @@ pub(all) struct TarballSource {
   sha256 : String?
   strip_components : Int?
   dest : String?
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for TarballSource with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for TarballSource with to_json(self) -> Json {
@@ -146,7 +166,12 @@ pub(all) struct GitSource {
   ref_ : String
   shallow : Bool?
   dest : String?
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for GitSource with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for GitSource with to_json(self) -> Json {
@@ -195,7 +220,12 @@ pub(all) struct FileSource {
   path : String?
   sha256 : String?
   dest : String?
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for FileSource with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for FileSource with to_json(self) -> Json {
@@ -248,7 +278,12 @@ pub impl @json.FromJson for FileSource with from_json(json, path) -> FileSource 
 pub(all) struct LocalSource {
   path : String
   dest : String?
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for LocalSource with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for LocalSource with to_json(self) -> Json {
@@ -284,7 +319,12 @@ pub(all) enum Source {
   Git(GitSource)
   File(FileSource)
   Local(LocalSource)
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for Source with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for Source with to_json(self) -> Json {
@@ -365,7 +405,12 @@ pub(all) struct PackageManifest {
   source : Array[Source]
   dependencies : Map[String, String]?
   build : Array[BuildStep]
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for PackageManifest with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for PackageManifest with to_json(self) -> Json {
@@ -435,7 +480,12 @@ pub impl @json.FromJson for PackageManifest with from_json(json, path) -> Packag
 /// Project dependencies from moon.lib.json
 pub(all) struct ProjectDependencies {
   dependencies : Map[String, String]
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for ProjectDependencies with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for ProjectDependencies with to_json(self) -> Json {
@@ -462,7 +512,12 @@ pub impl @json.FromJson for ProjectDependencies with from_json(json, path) -> Pr
 /// Repository configuration
 pub(all) struct Config {
   repositories : Array[String]
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for Config with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for Config with to_json(self) -> Json {
@@ -489,7 +544,12 @@ pub(all) struct InstalledLibrary {
   version : String
   installed_at : String
   files : Array[String]
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for InstalledLibrary with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for InstalledLibrary with to_json(self) -> Json {
@@ -524,7 +584,12 @@ pub impl @json.FromJson for InstalledLibrary with from_json(json, path) -> Insta
 /// Install manifest tracking installed libraries
 pub(all) struct InstallManifest {
   installed : Map[String, InstalledLibrary]
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub impl Show for InstallManifest with output(self, logger) -> Unit {
+  output_debug(self, logger)
+}
 
 ///|
 pub impl ToJson for InstallManifest with to_json(self) -> Json {

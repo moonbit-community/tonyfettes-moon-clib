@@ -299,9 +299,14 @@ async test "execute_build: custom cwd" {
     os: "linux",
     arch: "x86_64",
   }
-  // pwd should work in the /tmp directory
+  // Verify the command runs in the /tmp directory without writing to stdout.
   let steps : Array[@types.BuildStep] = [
-    { run: ["pwd"], when: None, env: None, cwd: None },
+    {
+      run: ["sh", "-c", "test \"$(pwd)\" = /tmp"],
+      when: None,
+      env: None,
+      cwd: None,
+    },
   ]
   @builder.execute_build(steps, ctx)
 }

@@ -2,6 +2,7 @@
 package "tonyfettes/moon-clib/repository"
 
 import {
+  "moonbitlang/core/debug",
   "tonyfettes/moon-clib/types",
 }
 
@@ -30,9 +31,8 @@ pub impl Show for RepositoryError
 pub(all) struct Repository {
   url : String
   is_local : Bool
-}
+} derive(Eq, @debug.Debug)
 pub async fn Repository::new(String) -> Self
-pub impl Eq for Repository
 pub impl Show for Repository
 
 // Type aliases
