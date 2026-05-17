@@ -21,7 +21,7 @@ test "Condition: os only" {
   assert_true(roundtrip(cond))
   let json = cond.to_json()
   guard json is Object(obj) else { panic() }
-  assert_eq(obj.get("os"), Some(Json::string("linux")))
+  @debug.assert_eq(obj.get("os"), Some(Json::string("linux")))
 }
 
 ///|
@@ -133,8 +133,8 @@ test "GitSource: JSON uses 'ref' field" {
   let json = src.to_json()
   guard json is Object(obj) else { panic() }
   // Should use "ref" not "ref_" in JSON
-  assert_eq(obj.get("ref"), Some(Json::string("v1.0.0")))
-  assert_eq(obj.get("ref_"), None)
+  @debug.assert_eq(obj.get("ref"), Some(Json::string("v1.0.0")))
+  @debug.assert_eq(obj.get("ref_"), None)
 }
 
 // FileSource tests
@@ -187,8 +187,8 @@ test "Source: Tarball serializes with type field" {
   })
   let json = src.to_json()
   guard json is Object(obj) else { panic() }
-  assert_eq(obj.get("type"), Some(Json::string("tarball")))
-  assert_eq(
+  @debug.assert_eq(obj.get("type"), Some(Json::string("tarball")))
+  @debug.assert_eq(
     obj.get("url"),
     Some(Json::string("https://example.org/lib.tar.gz")),
   )
@@ -204,8 +204,8 @@ test "Source: Git serializes with type field" {
   })
   let json = src.to_json()
   guard json is Object(obj) else { panic() }
-  assert_eq(obj.get("type"), Some(Json::string("git")))
-  assert_eq(obj.get("ref"), Some(Json::string("v1.0")))
+  @debug.assert_eq(obj.get("type"), Some(Json::string("git")))
+  @debug.assert_eq(obj.get("ref"), Some(Json::string("v1.0")))
 }
 
 ///|
@@ -218,7 +218,7 @@ test "Source: File serializes with type field" {
   })
   let json = src.to_json()
   guard json is Object(obj) else { panic() }
-  assert_eq(obj.get("type"), Some(Json::string("file")))
+  @debug.assert_eq(obj.get("type"), Some(Json::string("file")))
 }
 
 ///|
@@ -229,7 +229,7 @@ test "Source: Local serializes with type field" {
   })
   let json = src.to_json()
   guard json is Object(obj) else { panic() }
-  assert_eq(obj.get("type"), Some(Json::string("local")))
+  @debug.assert_eq(obj.get("type"), Some(Json::string("local")))
 }
 
 ///|
@@ -450,7 +450,7 @@ test "Source: parse from JSON string - tarball" {
   let src : @types.Source = @json.from_json(json) catch { _ => panic() }
   guard src is @types.Source::Tarball(t) else { panic() }
   assert_eq(t.url, "https://example.org/lib.tar.gz")
-  assert_eq(t.sha256, Some("abc123"))
+  @debug.assert_eq(t.sha256, Some("abc123"))
 }
 
 ///|
@@ -462,7 +462,7 @@ test "Source: parse from JSON string - git" {
   guard src is @types.Source::Git(g) else { panic() }
   assert_eq(g.url, "https://github.com/org/repo.git")
   assert_eq(g.ref_, "v1.0")
-  assert_eq(g.shallow, Some(true))
+  @debug.assert_eq(g.shallow, Some(true))
 }
 
 ///|
@@ -471,9 +471,9 @@ test "BuildStep: parse with condition" {
     #|{"run": ["./configure"], "when": {"os": "linux"}, "cwd": "src"}
   let json : Json = @json.parse(json_str) catch { _ => panic() }
   let step : @types.BuildStep = @json.from_json(json) catch { _ => panic() }
-  assert_eq(step.run, ["./configure"])
+  @debug.assert_eq(step.run, ["./configure"])
   guard step.when is Some(cond) else { panic() }
-  assert_eq(cond.os, Some("linux"))
-  assert_eq(cond.arch, None)
-  assert_eq(step.cwd, Some("src"))
+  @debug.assert_eq(cond.os, Some("linux"))
+  @debug.assert_eq(cond.arch, None)
+  @debug.assert_eq(step.cwd, Some("src"))
 }
