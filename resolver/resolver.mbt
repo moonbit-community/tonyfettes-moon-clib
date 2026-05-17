@@ -218,8 +218,9 @@ fn topological_sort(
         cycle_nodes.push(key)
       }
     }
+    let cycle_text = cycle_nodes.join(", ")
     raise CircularDependency(
-      "Circular dependency detected involving: \{cycle_nodes.iter().collect()}",
+      "Circular dependency detected involving: \{cycle_text}",
     )
   }
   result
