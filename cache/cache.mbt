@@ -145,12 +145,12 @@ pub async fn extract_from_cache(
   let text = output.text()
   let result : Array[String] = []
   for line in text.split("\n") {
-    let s = line.to_string()
+    let s = line.to_owned()
     if s.is_empty() {
       continue
     }
     // Clean up paths (remove leading ./ if present)
-    let cleaned = if s.has_prefix("./") { s[2:].to_string() } else { s }
+    let cleaned = if s.has_prefix("./") { s[2:].to_owned() } else { s }
     if !cleaned.is_empty() {
       result.push(cleaned)
     }
@@ -178,7 +178,7 @@ pub async fn list_cached() -> Array[(String, String)] {
   for filename in entries {
     if filename.has_suffix(suffix) {
       // Parse {name}-{version}-{os}-{arch}.tar.gz
-      let base = filename[:filename.length() - suffix.length()].to_string()
+      let base = filename[:filename.length() - suffix.length()].to_owned()
       // Find the last dash to separate name and version
       // Format: name-version (name may contain dashes, version typically doesn't)
       match parse_name_version(base) {

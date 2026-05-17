@@ -16,7 +16,7 @@ pub async fn get_os() -> String {
     // Fallback: assume windows if uname fails
     return "windows"
   }
-  let os_name = output.text().trim(char_set="\n\r ").to_string()
+  let os_name = output.text().trim(char_set="\n\r ").to_owned()
   match os_name {
     "Darwin" => "darwin"
     "Linux" => "linux"
@@ -34,7 +34,7 @@ pub async fn get_arch() -> String {
     // Fallback: default to x86_64
     return "x86_64"
   }
-  let arch_name = output.text().trim(char_set="\n\r ").to_string()
+  let arch_name = output.text().trim(char_set="\n\r ").to_owned()
   normalize_arch(arch_name)
 }
 
@@ -63,7 +63,7 @@ pub async fn get_jobs() -> Int {
     // Fallback: default to 1
     return 1
   }
-  let jobs_str = output.text().trim(char_set="\n\r ").to_string()
+  let jobs_str = output.text().trim(char_set="\n\r ").to_owned()
   try {
     let n = @string.parse_int(jobs_str)
     if n > 0 {
@@ -83,7 +83,7 @@ async fn get_env_var(name : String) -> String? {
   if exit_code != 0 {
     return None
   }
-  let value = output.text().trim(char_set="\n\r ").to_string()
+  let value = output.text().trim(char_set="\n\r ").to_owned()
   if value.is_empty() {
     None
   } else {
@@ -163,7 +163,7 @@ pub async fn get_home_dir() -> String {
   // Fallback: try to get from shell expansion
   let (exit_code, output) = @process.collect_stdout("sh", ["-c", "echo $HOME"])
   if exit_code == 0 {
-    let home = output.text().trim(char_set="\n\r ").to_string()
+    let home = output.text().trim(char_set="\n\r ").to_owned()
     if !home.is_empty() {
       return home
     }
