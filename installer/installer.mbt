@@ -148,7 +148,7 @@ async fn generate_timestamp() -> String {
     // Fallback to a default date if date command fails
     return "2024-01-01"
   }
-  output.text().trim(char_set="\n\r ").to_string()
+  output.text().trim(char_set="\n\r ").to_owned()
 }
 
 ///|
@@ -205,13 +205,13 @@ async fn collect_installed_files(
   let text = output.text()
   let root_prefix = if root.has_suffix("/") { root } else { root + "/" }
   for line in text.split("\n") {
-    let path = line.to_string()
+    let path = line.to_owned()
     if path.is_empty() {
       continue
     }
     // Remove root prefix to get relative path
     if path.has_prefix(root_prefix) {
-      let relative = path[root_prefix.length():].to_string()
+      let relative = path[root_prefix.length():].to_owned()
       if !relative.is_empty() {
         files.push(relative)
       }
@@ -255,7 +255,7 @@ async fn create_temp_destdir() -> String {
   if exit_code != 0 {
     raise TempDirCreate(output.text())
   }
-  output.text().trim(char_set="\n\r ").to_string()
+  output.text().trim(char_set="\n\r ").to_owned()
 }
 
 ///|

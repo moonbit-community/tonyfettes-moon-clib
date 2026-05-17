@@ -196,7 +196,7 @@ async fn is_directory(path : String) -> Bool {
 /// Run a git command and return (exit_code, trimmed_stderr_stdout).
 async fn run_git(args : FixedArray[String]) -> (Int, String) {
   let (exit_code, output) = @process.collect_stdout("git", args[:])
-  let message = output.text().trim(char_set="\n\r ").to_string()
+  let message = output.text().trim(char_set="\n\r ").to_owned()
   (exit_code, message)
 }
 
