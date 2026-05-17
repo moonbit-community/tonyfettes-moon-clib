@@ -2,7 +2,7 @@
 
 ///|
 /// Counter for unique test directory names
-let test_counter : Ref[Int] = Ref::new(0)
+let test_counter : Ref[Int] = Ref(0)
 
 ///|
 /// Create a unique temporary path under /tmp.
